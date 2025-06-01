@@ -1,0 +1,70 @@
+name: Windows Build & Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    name: Build and Release Windows App
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read Flutter version from .fvmrc
+        id: flutter_version
+        run: |
+          $json = Get-Content space_farm/.fvmrc | Out-String | ConvertFrom-Json
+          echo "flutter_version=$($json.flutter)" >> $env:GITHUB_OUTPUT
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.flutter_version.outputs.flutter_version }}
+
+      - name: Enable Windows support
+        run: flutter config --enable-windows-desktop
+
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: space_farm
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            space_farm/.dart_tool
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Build release version for Windows
+        run: flutter build windows --release
+        working-directory: space_farm
+
+      - name: Build release version for Windows
+        run: flutter build windows --release
+        working-directory: space_farm
+
+      - name: List build directory (debug)
+        run: Get-ChildItem -Recurse build
+        working-directory: space_farm
+
+      - name: Archive Windows build as zip
+        run: |
+          $version = "${{ github.ref_name }}"
+          $outputPath = "build/windows/x64/runner/Release"
+          $zipPath = "SpaceFarm_win_${version}.zip"
+          Compress-Archive -Path "$outputPath\*" -DestinationPath $zipPath
+        working-directory: space_farm
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: space_farm/SpaceFarm_win_*.zip
+          token: ${{ secrets.GH_RELEASE_TOKEN }}

@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <SelfContained>true</SelfContained>
+        <PublishSingleFile>true</PublishSingleFile>
+        <DebugType>None</DebugType>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.5"/>
+        <PackageReference Include="Steamworks.NET" Version="2024.8.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\steamworks\redistributable_bin\win64\steam_api64.dll"/>
+        <None Include="..\steamworks\redistributable_bin\linux64\libsteam_api.so"/>
+        <None Include="..\steamworks\redistributable_bin\osx\libsteam_api.dylib"/>
+    </ItemGroup>
+
+</Project>
