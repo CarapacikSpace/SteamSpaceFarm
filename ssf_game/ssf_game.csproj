@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <AssemblyName>ssf_game</AssemblyName>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <SelfContained>true</SelfContained>
+        <PublishSingleFile>true</PublishSingleFile>
+        <DebugType>None</DebugType>
+        <PublishAot>true</PublishAot>
+        <InvariantGlobalization>true</InvariantGlobalization>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Remove="RunnerChecks\**\*.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\redistributable_bin\win64\steam_api64.dll"/>
+        <None Include="..\redistributable_bin\linux64\libsteam_api.so"/>
+        <None Include="..\redistributable_bin\osx\libsteam_api.dylib"/>
+    </ItemGroup>
+
+</Project>

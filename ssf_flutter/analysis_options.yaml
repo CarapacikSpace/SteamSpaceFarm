@@ -1,0 +1,16 @@
+include: package:carapacik_lints/core.yaml
+analyzer:
+  exclude:
+    - '**/generated/**'
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
+formatter:
+  page_width: 120
+linter:
+  rules:
+    avoid_slow_async_io: false

@@ -9,62 +9,69 @@ jobs:
   build:
     name: Build and Release Windows App
     runs-on: windows-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Read Flutter version from .fvmrc
-        id: flutter_version
-        run: |
-          $json = Get-Content space_farm/.fvmrc | Out-String | ConvertFrom-Json
-          echo "flutter_version=$($json.flutter)" >> $env:GITHUB_OUTPUT
+        uses: actions/checkout@v7.0.1
 
       - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@v2.23.0
         with:
-          flutter-version: ${{ steps.flutter_version.outputs.flutter_version }}
+          channel: stable
 
       - name: Enable Windows support
         run: flutter config --enable-windows-desktop
 
-      - name: Install dependencies
-        run: flutter pub get
-        working-directory: space_farm
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build NativeAOT game runner from current source
+        shell: pwsh
+        run: ./tools/windows/build_steam_game.ps1
+
+      - name: Build standalone Steam library helper from current source
+        shell: pwsh
+        run: ./tools/windows/build_steam_library_helper.ps1
 
       - name: Cache Flutter dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6.1.0
         with:
-          path: |
-            ~/.pub-cache
-            space_farm/.dart_tool
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
+          path: ~/AppData/Local/Pub/Cache
+          key: ${{ runner.os }}-flutter-${{ hashFiles('ssf_flutter/pubspec.lock') }}
           restore-keys: |
             ${{ runner.os }}-flutter-
 
-      - name: Build release version for Windows
-        run: flutter build windows --release
-        working-directory: space_farm
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: ssf_flutter
+
+      - name: Generate localizations with global intl_utils
+        shell: pwsh
+        run: ./tools/windows/generate_localizations.ps1
+
+      - name: Analyze generated application sources
+        run: dart analyze --fatal-infos
+        working-directory: ssf_flutter
 
       - name: Build release version for Windows
         run: flutter build windows --release
-        working-directory: space_farm
-
-      - name: List build directory (debug)
-        run: Get-ChildItem -Recurse build
-        working-directory: space_farm
+        working-directory: ssf_flutter
 
       - name: Archive Windows build as zip
         run: |
-          $version = "${{ github.ref_name }}"
+          $version = $env:GITHUB_REF_NAME
           $outputPath = "build/windows/x64/runner/Release"
-          $zipPath = "SpaceFarm_win_${version}.zip"
+          $zipPath = "ssf_win_${version}.zip"
           Compress-Archive -Path "$outputPath\*" -DestinationPath $zipPath
-        working-directory: space_farm
+        working-directory: ssf_flutter
 
       - name: Upload release asset
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3.0.3
         with:
           tag_name: ${{ github.ref_name }}
-          files: space_farm/SpaceFarm_win_*.zip
-          token: ${{ secrets.GH_RELEASE_TOKEN }}
+          files: ssf_flutter/ssf_win_*.zip
+          token: ${{ github.token }}

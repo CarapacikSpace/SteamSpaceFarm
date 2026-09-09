@@ -1,0 +1,8 @@
+# .NET build and publish output, including RunnerChecks.
+bin/
+obj/
+
+# Local IDE settings.
+.vs/
+*.user
+*.suo

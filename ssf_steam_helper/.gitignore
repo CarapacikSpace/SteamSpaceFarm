@@ -1,0 +1,10 @@
+# .NET build and publish output.
+bin/
+obj/
+
+# Local IDE settings and protected authentication data.
+.vs/
+*.user
+*.suo
+*.dpapi
+*.tmp

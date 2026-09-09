@@ -1,6 +1,0 @@
-include: package:carapacik_lints/core.yaml
-analyzer:
-  exclude:
-    - '**/generated/**'
-formatter:
-  page_width: 120

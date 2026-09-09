@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>runner_checks</AssemblyName>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <StartupObject>SteamGameChecks.Checks</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Program.cs" Link="RunnerProgram.cs" />
+    <Compile Include="..\RunnerLifecycle.cs" Link="RunnerLifecycle.cs" />
+    <Compile Include="..\WindowsRunnerJob.cs" Link="WindowsRunnerJob.cs" />
+    <Compile Include="..\NativeSteamApi.cs" Link="NativeSteamApi.cs" />
+  </ItemGroup>
+</Project>

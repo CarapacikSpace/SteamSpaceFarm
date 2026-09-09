@@ -1,0 +1,4 @@
+enum TimeFilterType() {
+  hours,
+  minutes,
+}

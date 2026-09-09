@@ -1,0 +1,494 @@
+{
+  "@@locale": "en",
+  "activeQueueMustStop": "Stop the active queue first.",
+  "addToFavorites": "Add to favorites",
+  "all": "All",
+  "allProcessesStopped": "All games and Steam helper processes stopped.",
+  "allSequentially": "All sequentially",
+  "alphabetical": "Alphabetical",
+  "appChangesSaveFailed": "Could not save changes for {arg0}",
+  "@appChangesSaveFailed": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "appIdCopied": "AppID copied",
+  "appIdInvalid": "Enter a valid AppID.",
+  "appLanguage": "App language",
+  "application": "Application",
+  "appLookupHint": "Name, AppID or Steam link",
+  "applyTargets": "Apply targets",
+  "appType": "App type",
+  "appTypeRunningLabel": "{arg0} · Running",
+  "@appTypeRunningLabel": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "ascending": "Ascending",
+  "automatic": "automatic",
+  "automaticAppsCount": "auto {arg0}",
+  "@automaticAppsCount": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "autoStop": "Auto-stop",
+  "bulkChangesSaveFailed": "Could not save bulk changes. Please try again.",
+  "bulkTargets": "Bulk targets",
+  "bulkTargetsDescription": "Set auto-stop targets for the selected part of the catalog.",
+  "bulkTargetsInvalidRange": "Check the values: the range must be valid and targets must be positive.",
+  "bulkTargetsNoChanges": "No apps would be changed by this operation.",
+  "byLastPlayed": "By last played",
+  "byPlaytime": "By playtime",
+  "byTimeUntilTarget": "By time until target",
+  "cache": "Cache",
+  "cancel": "Cancel",
+  "cancelAction": "Cancel",
+  "cardType": "Card type",
+  "cardTypeAppIcon": "App icon 32×32",
+  "cardTypeLibraryCapsule": "Library capsule",
+  "cardTypeMainCapsule": "Main capsule",
+  "cardTypeStoreHeader": "Store header",
+  "catalogEmptyDescription": "Connect Steam to get your games and playtime.",
+  "catalogEmptyTitle": "Your local library is empty",
+  "catalogEmptyWithSession": "You are already signed in to Steam. Refresh your library to load your games and playtime.",
+  "catalogNoResultsHint": "Change your search or filter settings.",
+  "catalogReadFailed": "Could not read the local catalog",
+  "catalogResultsCount": "{arg0} found",
+  "@catalogResultsCount": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "catalogSearchHint": "Name or AppID",
+  "clearAll": "Clear all",
+  "clearAllTargetsAction": "Clear all targets",
+  "clearAllTargetsDescription": "Auto-stop targets will be removed from {arg0} apps across the entire library.",
+  "@clearAllTargetsDescription": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "clearAllTargetsTitle": "Clear all targets?",
+  "clearLibraryCache": "Clear library cache",
+  "clearTargets": "Clear targets",
+  "clearTargetsIgnoresFiltersHint": "The current search and filters do not apply. You will be asked to confirm before targets are removed.",
+  "close": "Close",
+  "concurrentApps": "Concurrent apps",
+  "concurrentLimitReached": "The concurrent app limit has been reached: {arg0}.",
+  "@concurrentLimitReached": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "confirmLaunch": "Confirm launch",
+  "connectSteam": "Connect Steam",
+  "copyAppId": "Copy AppID",
+  "currentAppLabel": "current: {arg0}",
+  "@currentAppLabel": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "currentPlaytime": "Current playtime",
+  "currentSelection": "Current selection",
+  "defaultDuration": "Default duration",
+  "delayBetweenGames": "Delay between games",
+  "demo": "Demo",
+  "descending": "Descending",
+  "detectAutomatically": "Detect automatically",
+  "done": "Done",
+  "edit": "Edit…",
+  "editAutoStopTarget": "Edit auto-stop target",
+  "editCurrentPlaytime": "Edit current playtime",
+  "editFilters": "Edit filters",
+  "editingRequiresStoppedGames": "Stop the running games and queue first.",
+  "eligibleApps": "Eligible apps",
+  "emptyTargetClearsHint": "Leave empty to clear the target",
+  "enterCode": "Enter code",
+  "entireLibrary": "Entire library",
+  "entireLibraryOperationTitle": "Operation for the entire library",
+  "favorites": "Favorites",
+  "favoritesLaunchDescription": "All favorites in the current selection run in parallel, up to {arg0} at a time.",
+  "@favoritesLaunchDescription": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "filters": "Filters",
+  "game": "Game",
+  "gameDeadlineUpdateFailed": "Could not update the stop time for {arg0}.",
+  "@gameDeadlineUpdateFailed": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "gameLaunchFailed": "Could not launch {arg0} (AppID {arg1}). {arg2}",
+  "@gameLaunchFailed": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      },
+      "arg1": {
+        "type": "Object"
+      },
+      "arg2": {
+        "type": "Object"
+      }
+    }
+  },
+  "gamePlaytimeSaveFailed": "Could not save playtime for {arg0} (AppID {arg1}).",
+  "@gamePlaytimeSaveFailed": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      },
+      "arg1": {
+        "type": "Object"
+      }
+    }
+  },
+  "gameStopFailed": "Could not stop {arg0} (AppID {arg1}). The process is still being monitored.",
+  "@gameStopFailed": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      },
+      "arg1": {
+        "type": "Object"
+      }
+    }
+  },
+  "hidden": "Hidden",
+  "hours": "Hours",
+  "hoursAbbreviation": "h",
+  "initializationFailed": "Initialization failed",
+  "initializationFailureHint": "Application components could not be prepared. Library data was not changed.",
+  "interface": "INTERFACE",
+  "languageEnglish": "English",
+  "languageRussian": "Russian",
+  "lastPlayed": "Last played",
+  "launchAction": "Launch",
+  "launchApps": "Launch apps",
+  "launchConfirmationHint": "Launch starts immediately after confirmation.",
+  "launchMenuLabel": "LAUNCH",
+  "launchOptionsAction": "Launch…",
+  "launchOrder": "Launch order",
+  "launchUsesFiltersHint": "Launch respects the search query and all active catalog filters.",
+  "libraryCache": "Library cache",
+  "libraryCacheAppCount": "{count, plural, =0{No apps cached} one{{count} app cached} other{{count} apps cached}}",
+  "@libraryCacheAppCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryCacheClearDescription": "Remove the downloaded game list, playtime, favorites and targets from SSF. Your Steam session will remain available for the next refresh.",
+  "libraryCacheCleared": "Library cache cleared. Your Steam session is saved.",
+  "libraryCacheClearFailed": "Could not clear the library cache. Please try again.",
+  "libraryCacheCounting": "Counting cached apps…",
+  "libraryCacheCountUnavailable": "Could not read the number of cached apps.",
+  "librarySaveFailed": "Could not save the library. Please refresh again.",
+  "librarySaving": "Saving the library to the catalog…",
+  "libraryUpdated": "Library updated: {arg0} apps.",
+  "@libraryUpdated": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "libraryUpdatedPartially": "Library updated: {arg0} apps. Some Steam data is unavailable.",
+  "@libraryUpdatedPartially": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "lowPlaytimeDurationLabel": "If below 30 minutes",
+  "manage": "Manage…",
+  "manualAppsCount": "manual {arg0}",
+  "@manualAppsCount": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "manualLaunch": "Manual launch",
+  "marked": "Marked",
+  "markedLaunchDescription": "Games with an unmet target run in parallel, up to {arg0} at a time.",
+  "@markedLaunchDescription": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "maximum": "Maximum",
+  "maximumExclusive": "Maximum <",
+  "maximumTarget": "Maximum target",
+  "milestoneTargetRulesHint": "The next eligible target is set to an exact milestone minute. Games at the target or up to 5 minutes past it are not marked again.",
+  "minimum": "Minimum",
+  "minimumInclusive": "Minimum ≥",
+  "minimumTarget": "Minimum target",
+  "minutes": "Minutes",
+  "minutesAbbreviation": "min",
+  "mode": "Mode",
+  "moreActions": "More actions",
+  "name": "Name",
+  "nonNegativeIntegerRequired": "Enter an integer of 0 or more",
+  "nothingFound": "Nothing found",
+  "optional": "Optional",
+  "optionalMaximumHint": "Optional — defaults to the maximum",
+  "other": "Other",
+  "ownership": "Ownership",
+  "ownershipFromSteamOnRefresh": "Use Steam data on the next refresh",
+  "ownershipNonPersonal": "Not mine / unknown",
+  "ownershipPersonal": "Mine",
+  "ownershipPersonalFilter": "Mine",
+  "ownershipUnknown": "Unknown",
+  "ownershipUnknownFilter": "Unknown",
+  "password": "Password",
+  "pause": "Pause",
+  "playtime": "Playtime",
+  "playtimeClearsReachedTargetHint": "The new playtime reaches the current auto-stop target, so the target will be cleared.",
+  "playtimeHours": "{arg0} h",
+  "@playtimeHours": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "playtimeHoursApproximate": "≈ {arg0} h",
+  "@playtimeHoursApproximate": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "playtimeInMinutes": "Playtime in minutes",
+  "playtimeMilestones": "Playtime milestones",
+  "playtimeMinutes": "{arg0} min",
+  "@playtimeMinutes": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "playtimeMinutesExample": "For example, 120",
+  "positiveIntegerRequired": "Enter a positive integer",
+  "queuedAppsCount": "queued {arg0}",
+  "@queuedAppsCount": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "queuePausedLabel": "{arg0} · paused",
+  "@queuePausedLabel": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "range": "Range",
+  "refreshLibrary": "Refresh library",
+  "refreshQrCode": "Refresh QR code",
+  "removeFromFavorites": "Remove from favorites",
+  "reset": "Reset",
+  "resetAll": "Reset all",
+  "resume": "Resume",
+  "retry": "Retry",
+  "runnerAccountMismatch": "Make sure the SSF library and Steam client use the same account.",
+  "runnerCleanupFailed": "Could not enable automatic cleanup of game processes. Restart SSF and try again.",
+  "runnerLaunchUnconfirmed": "SteamAPI did not confirm the launch.",
+  "runnerLibraryRequired": "Load your Steam account library first.",
+  "runnerUpdateRequired": "Rebuild or update ssf_game alongside SSF.",
+  "runningAppsCount": "Running {arg0}/{arg1}",
+  "@runningAppsCount": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      },
+      "arg1": {
+        "type": "Object"
+      }
+    }
+  },
+  "save": "Save",
+  "searchByName": "Search by name",
+  "secondsAbbreviation": "sec",
+  "selectAValue": "Select a value",
+  "selectionHasNoEligibleApps": "No eligible apps in the current selection.",
+  "sequentialLaunchDescription": "The entire current selection runs one app at a time.",
+  "sequentialQueue": "Sequential queue",
+  "sequentialQueueBlocksManualLaunch": "Manual launch is unavailable while a sequential queue is active.",
+  "sequentialQueueRequiresStoppedGames": "Stop the running apps before starting a sequential queue.",
+  "sequentialStartAppId": "Start from AppID",
+  "sequentialTimingInvalid": "Duration must be at least 1 second and the delay must be 0 or more.",
+  "setOwnership": "Set ownership",
+  "setTargets": "Set targets…",
+  "settings": "Settings",
+  "settingsAppearance": "Appearance",
+  "settingsCardPreviewHint": "Select a tile to apply that card format to the catalog immediately.",
+  "settingsImmediateSaveHint": "Changes are saved immediately and do not require an Apply button.",
+  "settingsIntegrationsSteam": "Integrations · Steam",
+  "settingsLanguage": "Language",
+  "settingsSaved": "Settings saved",
+  "settingsSaveError": "The setting could not be saved.",
+  "settingsSaving": "Saving…",
+  "signIn": "Sign in",
+  "signOut": "Sign out",
+  "sortBy": "Sort by",
+  "soundtrack": "Soundtrack",
+  "startAppNotInSelection": "The specified AppID was not found in the current sorted selection.",
+  "status": "Status",
+  "statusRunning": "Running",
+  "steamAccountName": "Steam account name",
+  "steamAuthInputFailed": "Could not send the response to Steam",
+  "steamConnecting": "Connecting to Steam…",
+  "steamConnection": "Steam connection",
+  "steamCredentialsChecking": "Checking Steam credentials…",
+  "steamCredentialsRequired": "Enter your Steam account name and password",
+  "steamCredentialsTitle": "Sign in with your account name",
+  "steamFamilyLibraryLoading": "Loading the Steam Family library…",
+  "steamGuardAppPrompt": "Enter the Steam Guard code from the Steam app",
+  "steamGuardChecking": "Checking Steam Guard code…",
+  "steamGuardCode": "Steam Guard code",
+  "steamGuardEmailLabel": "Code from your Steam email",
+  "steamGuardEmailPrompt": "Enter the Steam Guard code from your email",
+  "steamGuardSubmit": "Confirm code",
+  "steamHelperProtocolError": "Invalid response from the library helper",
+  "steamHelperReadFailed": "Could not read the library helper response",
+  "steamHelperStartFailed": "Could not start the library helper. Make sure ssf_steam_helper.exe is installed alongside SSF.",
+  "steamHelperStopUnconfirmed": "Could not confirm that the process stopped. Try cancelling again.",
+  "steamId": "SteamID",
+  "steamLibraryFailedWithCode": "Signed in. Could not get the library (code {arg0}).",
+  "@steamLibraryFailedWithCode": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "steamLibraryLoading": "Signed in. Loading the library…",
+  "steamLibraryMerging": "Combining library data…",
+  "steamLibraryPartialStatus": "Signed in. Library data is partially available.",
+  "steamLibraryReceived": "Signed in. Library received.",
+  "steamLibraryTimeout": "Signed in, but the library request timed out.",
+  "steamMetadataLoading": "Loading app names and types…",
+  "steamMobileConfirmationPrompt": "Approve the sign-in in the Steam app on your phone",
+  "steamPersonalLibraryLoading": "Loading licenses and your apps…",
+  "steamPlaytimeUpdating": "Updating playtime…",
+  "steamPrivateAppsChecking": "Checking private apps…",
+  "steamQrAccessibilityLabel": "QR code for signing in with Steam Mobile",
+  "steamQrInstructions": "Use the Steam mobile app to sign in with a QR code",
+  "steamQrScanPrompt": "Scan the QR code in Steam Mobile and approve the sign-in",
+  "steamQrTitle": "Or use a QR code",
+  "steamSessionActive": "You already have an active session",
+  "steamSessionChecking": "Checking the saved session…",
+  "steamSessionPrivacyHint": "Your password is not saved. The protected session is used for future refreshes without signing in again.",
+  "steamSessionReadFailed": "Could not read the saved session",
+  "steamSignedOutCacheCleared": "Signed out. Library cache cleared.",
+  "steamSignedOutStatus": "Signed out of Steam. Choose a sign-in method.",
+  "steamSignInCancelled": "Sign-in cancelled",
+  "steamSignInCancelling": "Cancelling sign-in…",
+  "steamSignInFailedWithCode": "Could not sign in (code {arg0}). Please try again.",
+  "@steamSignInFailedWithCode": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "steamSigningOut": "Signing out and clearing the cache…",
+  "steamSignInMethodPrompt": "Choose a sign-in method",
+  "steamSignInTimeout": "Sign-in timed out",
+  "steamSignOutFailed": "Could not finish signing out. Please try again.",
+  "steamSyncFailed": "Sign-in or library request failed: {arg0}",
+  "@steamSyncFailed": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "stopAction": "Stop",
+  "stopAll": "Stop all",
+  "stopAllProcessesDescription": "All games and Steam helper processes started by this SteamSpaceFarm instance will be stopped. Queued launches and library refresh will be cancelled.",
+  "stopAllProcessesFailed": "Could not force stop the processes.",
+  "stopAllProcessesTitle": "Force stop everything?",
+  "stopBatchQueueDescription": "The queue will be cleared and the apps it launched will be stopped.",
+  "stopManualApps": "Stop manual apps",
+  "stopManualAppsCount": "Stop manual apps · {arg0}",
+  "@stopManualAppsCount": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "stopManualAppsDescription": "Apps launched manually in this session will be stopped: {arg0}.",
+  "@stopManualAppsDescription": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "stopManualAppsTitle": "Stop manually launched apps?",
+  "stopMenuLabel": "STOP",
+  "stopQueue": "Stop queue",
+  "stopQueueTitle": "Stop the active queue?",
+  "stopSequentialQueueDescription": "The current app will stop and the remaining {arg0} entries will be removed.",
+  "@stopSequentialQueueDescription": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "storage": "STORAGE",
+  "targetAlreadyReachedHint": "Current playtime is {arg0} min. This target will be cleared because it has already been reached.",
+  "@targetAlreadyReachedHint": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "targetPlaytime": "Target playtime",
+  "targetPlaytimeInMinutes": "Target playtime in minutes",
+  "targetRangeBoundsHint": "Targets apply to apps from the minimum playtime inclusive to the maximum exclusive.",
+  "technicalDetails": "Technical details",
+  "timeUntilTarget": "Time until target",
+  "tool": "Tool",
+  "video": "Video"
+}
