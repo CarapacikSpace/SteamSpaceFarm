@@ -30,7 +30,9 @@ class _RootContextState() extends State<RootContext> {
       return AppExitResponse.exit;
     } on Object catch (error, stack) {
       AppLogger.error('Could not stop all processes', error, stack);
-      _messenger.currentState?.showSnackBar(steamNotice(GeneratedLocalizations.current.stopAllProcessesFailed));
+      _messenger.currentState?.showSnackBar(
+        steamNotice(GeneratedLocalizations.of(_messenger.currentContext!).stopAllProcessesFailed),
+      );
       return AppExitResponse.cancel;
     }
   }

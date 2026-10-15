@@ -39,7 +39,7 @@ LocalApp cached(LibraryOwnership ownership, {bool manual = false}) => LocalApp(
 );
 
 void main() {
-  setUp(() => GeneratedLocalizations.load(const Locale('ru')));
+  setUp(() => GeneratedLocalizations.delegate.load(const Locale('ru')));
   test('last played is UTC, persists and drives chronological ordering', () {
     final LocalApp old = cached(LibraryOwnership.personal);
     final LocalApp updated = refresh(ownership: 'personal').merge([old]).single;

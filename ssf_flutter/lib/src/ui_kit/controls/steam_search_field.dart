@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:ssf_flutter/src/localization/generated/l10n.dart';
+import 'package:ssf_flutter/src/ui_kit/controls/steam_text_field.dart';
 import 'package:ssf_flutter/src/ui_kit/steam_tokens.dart';
 
 class const SteamSearchField({
@@ -58,7 +59,7 @@ class _SteamSearchFieldState() extends State<SteamSearchField> {
                           ]
                         : const [],
                   ),
-                  child: TextField(
+                  child: SteamTextField(
                     controller: widget.controller,
                     focusNode: widget.focusNode,
                     onChanged: widget.onChanged,

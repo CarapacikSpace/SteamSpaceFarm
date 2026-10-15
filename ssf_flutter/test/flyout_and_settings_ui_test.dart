@@ -87,11 +87,7 @@ void main() {
     final Rect menu = tester.getRect(find.byType(SteamFlyoutReveal).first);
     expect(menu.right, lessThanOrEqualTo(800));
     expect(menu.bottom, lessThanOrEqualTo(600));
-    final double widestText = tester
-        .widgetList<Text>(find.descendant(of: find.byType(SteamFlyoutReveal), matching: find.byType(Text)))
-        .map((text) => tester.getSize(find.text(text.data!)).width)
-        .reduce((a, b) => a > b ? a : b);
-    expect(menu.width, closeTo(widestText + 20, 1));
+    expect(menu.width, 196);
     await tester.tap(find.text('Изменить…'));
     await tester.pumpAndSettle();
     expect(find.byType(SteamFlyoutReveal), findsNWidgets(2));
@@ -130,10 +126,17 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byType(SteamDropdown<Locale>));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Английский'));
+    await tester.tap(find.text('English'));
     await tester.pumpAndSettle();
     expect(find.text('Settings saved'), findsOneWidget);
     expect(find.text('Настройки сохранены'), findsNothing);
+    await tester.tap(find.byType(SteamDropdown<Locale>));
+    await tester.pumpAndSettle();
+    expect(find.text('Русский'), findsOneWidget);
+    expect(find.text('Español'), findsOneWidget);
+    await tester.tap(find.text('Español'));
+    await tester.pumpAndSettle();
+    expect(find.text('Ajustes guardados'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -143,7 +146,7 @@ void main() {
         CatalogScreen(
           appsRepository: EmptyCatalog(),
           steamGameService: SteamGameService(processManager: SteamProcessManager()),
-          settings: initial,
+          settings: initial.copyWith(refreshOnStartup: false),
           sessionExists: () async => true,
         ),
       ),

@@ -11,12 +11,23 @@ void main() {
     expect(Localization.resolve(const Locale('ru', 'RU')), const Locale('ru'));
     expect(Localization.resolve(const Locale('en', 'GB')), const Locale('en'));
     expect(Localization.resolve(const Locale('fr')), const Locale('en'));
+    expect(Localization.resolve(const Locale('es', 'MX')), const Locale('es'));
+  });
+  test('startup refresh defaults on for older preferences and preserves opt-out', () async {
+    final prefs = MemoryPreferences()..values['settings.locale.language_code'] = 'ru';
+    final source = AppSettingsDataSource(sharedPreferences: prefs);
+    final AppSettings settings = (await source.getAppSettings())!;
+    expect(settings.refreshOnStartup, isTrue);
+    expect(settings.invisibleWhilePlaying, isTrue);
+    await source.setAppSettings(settings.copyWith(refreshOnStartup: false, invisibleWhilePlaying: false));
+    expect((await source.getAppSettings())!.refreshOnStartup, isFalse);
+    expect((await source.getAppSettings())!.invisibleWhilePlaying, isFalse);
   });
   test('settings persist and reload through renamed preferences columns', () async {
     final prefs = MemoryPreferences();
     final source = AppSettingsDataSource(sharedPreferences: prefs);
     expect(await source.getAppSettings(), isNull);
-    const settings = AppSettings(locale: Locale('ru'), cardType: SteamAppCardType.appIcon);
+    const settings = AppSettings(locale: Locale('ru'), cardType: SteamAppCardType.appIcon, experimentalSteamKit: true);
     await source.setAppSettings(settings);
     expect(await AppSettingsDataSource(sharedPreferences: prefs).getAppSettings(), settings);
     expect(prefs.values['settings.locale.language_code'], 'ru');

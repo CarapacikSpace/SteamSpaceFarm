@@ -10,7 +10,9 @@ import 'package:ssf_flutter/src/feature/steam/model/steam_helper_event.dart';
 import 'package:ssf_flutter/src/feature/steam/widget/steam_qr_code.dart';
 import 'package:ssf_flutter/src/localization/generated/l10n.dart';
 import 'package:ssf_flutter/src/ui_kit/controls/steam_button.dart';
+import 'package:ssf_flutter/src/ui_kit/controls/steam_text_field.dart';
 import 'package:ssf_flutter/src/ui_kit/layout/steam_surface_card.dart';
+import 'package:ssf_flutter/src/ui_kit/overlay/steam_confirmation_dialog.dart';
 import 'package:ssf_flutter/src/ui_kit/overlay/steam_notice.dart';
 
 class const SteamIntegrationView({
@@ -22,15 +24,18 @@ class const SteamIntegrationView({
   final bool refreshExistingSession = false,
   final IAppsRepository? appsRepository,
   final Future<void> Function()? onLibraryUpdated,
+  final VoidCallback? onLibraryActivityChanged,
   super.key,
 }) extends StatefulWidget {
   this : assert(controller != null || processManager != null);
 
   @override
-  State<SteamIntegrationView> createState() => _SteamIntegrationViewState();
+  State<SteamIntegrationView> createState() => SteamIntegrationViewState();
 }
 
-class _SteamIntegrationViewState() extends State<SteamIntegrationView> {
+class SteamIntegrationViewState() extends State<SteamIntegrationView> {
+  bool _confirmingLeave = false;
+  bool _allowPop = false;
   late final SteamLibrarySyncController _auth =
       widget.controller ?? SteamLibrarySyncController(processManager: widget.processManager!);
   final _login = TextEditingController();
@@ -42,6 +47,10 @@ class _SteamIntegrationViewState() extends State<SteamIntegrationView> {
     onLibraryUpdated: widget.onLibraryUpdated,
   );
   int _noticeRevision = 0;
+  bool? _lastLibraryActivity;
+
+  bool get updatingLibrary =>
+      _saving || (_auth.busy && (_auth.method == SteamSignInMethod.session || _auth.authenticated));
 
   bool get _saving => _libraryController.saving;
 
@@ -76,6 +85,14 @@ class _SteamIntegrationViewState() extends State<SteamIntegrationView> {
   }
 
   void _handleNotice() {
+    if (_lastLibraryActivity != updatingLibrary) {
+      _lastLibraryActivity = updatingLibrary;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          widget.onLibraryActivityChanged?.call();
+        }
+      });
+    }
     if (_noticeRevision == _libraryController.noticeRevision) {
       return;
     }
@@ -88,13 +105,37 @@ class _SteamIntegrationViewState() extends State<SteamIntegrationView> {
     _notifyUser(steamLibraryNotice(_libraryController, GeneratedLocalizations.of(context)));
   }
 
+  Future<bool> confirmLeave() async {
+    if (_saving || _switching || _confirmingLeave) {
+      return false;
+    }
+    if (!_auth.busy) {
+      return true;
+    }
+    _confirmingLeave = true;
+    try {
+      final GeneratedLocalizations l10n = GeneratedLocalizations.of(context);
+      final bool confirmed = await showSteamConfirmationDialog(
+        context: context,
+        title: l10n.leaveLibraryUpdateTitle,
+        message: l10n.leaveLibraryUpdateMessage,
+        confirmText: l10n.leaveScreen,
+      );
+      if (!confirmed || !mounted) {
+        return false;
+      }
+      await _auth.cancel();
+      return !_auth.busy && !_saving;
+    } finally {
+      _confirmingLeave = false;
+    }
+  }
+
   Future<void> _leaveScreen() async {
-    if (_saving || _switching) {
+    if (!await confirmLeave() || !mounted) {
       return;
     }
-    if (_auth.busy) {
-      await _auth.cancel();
-    }
+    setState(() => _allowPop = true);
     await WidgetsBinding.instance.endOfFrame;
     if (mounted && !_auth.busy && !_saving) {
       Navigator.of(context).pop();
@@ -141,7 +182,7 @@ class _SteamIntegrationViewState() extends State<SteamIntegrationView> {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       _caption(GeneratedLocalizations.of(context).steamCredentialsTitle, accent: true),
-      TextField(
+      SteamTextField(
         key: const ValueKey('steam-login'),
         controller: _login,
         enabled: _credentialsEnabled,
@@ -155,7 +196,7 @@ class _SteamIntegrationViewState() extends State<SteamIntegrationView> {
       ),
       const SizedBox(height: 16),
       _caption(GeneratedLocalizations.of(context).password),
-      TextField(
+      SteamTextField(
         key: const ValueKey('steam-password'),
         controller: _password,
         enabled: _credentialsEnabled,
@@ -204,7 +245,7 @@ class _SteamIntegrationViewState() extends State<SteamIntegrationView> {
               : GeneratedLocalizations.of(context).steamGuardCode,
           accent: true,
         ),
-        TextField(
+        SteamTextField(
           key: const ValueKey('steam-guard'),
           controller: _code,
           autofocus: true,
@@ -231,7 +272,7 @@ class _SteamIntegrationViewState() extends State<SteamIntegrationView> {
         SteamQrPanel(
           data: _auth.qrUrl,
           active: _auth.busy && _auth.method == SteamSignInMethod.qr && !_auth.failed && !_auth.wasCancelled,
-          onRefresh: !_auth.busy && !_saving && !_switching && !_auth.checkingSession
+          onRefresh: !_libraryController.gamesActive && !_auth.busy && !_saving && !_switching && !_auth.checkingSession
               ? () => unawaited(_libraryController.refreshQr())
               : null,
         ),
@@ -252,7 +293,7 @@ class _SteamIntegrationViewState() extends State<SteamIntegrationView> {
       builder: (context, _) {
         final bool active = _auth.hasSavedSession || _auth.authenticated;
         return PopScope<void>(
-          canPop: !_auth.busy && !_saving,
+          canPop: _allowPop || (!_auth.busy && !_saving),
           onPopInvokedWithResult: (didPop, _) {
             if (!didPop) {
               unawaited(_leaveScreen());
@@ -266,6 +307,10 @@ class _SteamIntegrationViewState() extends State<SteamIntegrationView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    if (_libraryController.gamesActive) ...[
+                      Text(GeneratedLocalizations.of(context).gamesBlockLibrary),
+                      const SizedBox(height: 16),
+                    ],
                     if (_auth.checkingSession)
                       SteamSurfaceCard(
                         child: _progressStatus(GeneratedLocalizations.of(context).steamSessionChecking, running: true),
@@ -297,7 +342,7 @@ class _SteamIntegrationViewState() extends State<SteamIntegrationView> {
                                 SteamButton(
                                   variant: SteamButtonVariant.primary,
                                   height: 32,
-                                  onPressed: _auth.busy || _saving
+                                  onPressed: _libraryController.gamesActive || _auth.busy || _saving
                                       ? null
                                       : () => unawaited(_libraryController.refresh()),
                                   icon: const Icon(Icons.sync),
@@ -306,7 +351,9 @@ class _SteamIntegrationViewState() extends State<SteamIntegrationView> {
                                 SteamButton(
                                   variant: SteamButtonVariant.shopping,
                                   height: 32,
-                                  onPressed: _saving ? null : () => unawaited(_libraryController.logout()),
+                                  onPressed: _libraryController.gamesActive || _saving
+                                      ? null
+                                      : () => unawaited(_libraryController.logout()),
                                   icon: const Icon(Icons.logout),
                                   child: Text(GeneratedLocalizations.of(context).signOut),
                                 ),

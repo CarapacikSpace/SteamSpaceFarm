@@ -31,7 +31,7 @@ SteamLibrarySnapshot snapshot({
 });
 
 void main() {
-  setUp(() => GeneratedLocalizations.load(const Locale('ru')));
+  setUp(() => GeneratedLocalizations.delegate.load(const Locale('ru')));
   late Directory directory;
   late AppsRepository repository;
   setUp(() async {
@@ -41,6 +41,24 @@ void main() {
   tearDown(() async {
     await directory.delete(recursive: true);
   });
+
+  for (final malformed in ['{broken', '{"schemaVersion":1,"apps":[{"type":999}]}']) {
+    test('corrupt catalog can be cleared and imported: $malformed', () async {
+      final file = File(p.join(directory.path, 'catalog.json'));
+      await file.writeAsString(malformed);
+      await repository.clearLibraryCache();
+      expect(await repository.getAppsFromCache(), isEmpty);
+      final Iterable<File> backups = directory.listSync().whereType<File>().where((f) => f.path.contains('.corrupt-'));
+      expect(backups, hasLength(1));
+      expect(await backups.single.readAsString(), malformed);
+      await file.writeAsString(malformed);
+      await repository.importSteamLibrary(snapshot());
+      expect((await repository.getAppsFromCache()).single.appId, 480);
+      await file.writeAsString(malformed);
+      await repository.clearLibraryCache(forgetAccount: true);
+      expect(await repository.getCatalogSteamId(), isNull);
+    });
+  }
 
   test('imports names, minutes and nullable ownership without an API key', () async {
     await repository.importSteamLibrary(snapshot(ownership: null));

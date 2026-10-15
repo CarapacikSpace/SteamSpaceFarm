@@ -1,0 +1,514 @@
+{
+  "@@locale": "es",
+  "activeQueueMustStop": "Detén primero la cola activa.",
+  "addToFavorites": "Añadir a favoritos",
+  "all": "Todos",
+  "allProcessesStopped": "Se han detenido todos los juegos y procesos auxiliares de Steam.",
+  "allSequentially": "Todos en secuencia",
+  "alphabetical": "Por nombre",
+  "appChangesSaveFailed": "No se pudieron guardar los cambios de {arg0}",
+  "@appChangesSaveFailed": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "appIdCopied": "AppID copiado",
+  "appIdInvalid": "Introduce un AppID válido.",
+  "appLanguage": "Idioma de la aplicación",
+  "application": "Aplicación",
+  "appLookupHint": "Nombre, AppID o enlace de Steam",
+  "applyTargets": "Aplicar objetivos",
+  "appType": "Tipo de aplicación",
+  "appTypeRunningLabel": "{arg0} · En ejecución",
+  "@appTypeRunningLabel": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "ascending": "Ascendente",
+  "automatic": "automático",
+  "automaticAppsCount": "automáticas: {arg0}",
+  "@automaticAppsCount": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "autoStop": "Parada automática",
+  "bulkChangesSaveFailed": "No se pudieron guardar los cambios masivos. Inténtalo de nuevo.",
+  "bulkTargets": "Objetivos masivos",
+  "bulkTargetsDescription": "Establece objetivos de parada automática para la selección del catálogo.",
+  "bulkTargetsInvalidRange": "Comprueba los valores: el intervalo debe ser válido y los objetivos deben ser positivos.",
+  "bulkTargetsNoChanges": "Esta operación no modificaría ninguna aplicación.",
+  "byLastPlayed": "Por última sesión",
+  "byPlaytime": "Por tiempo jugado",
+  "byTimeUntilTarget": "Por tiempo restante",
+  "cache": "Caché",
+  "cancel": "Cancelar",
+  "cancelAction": "Cancelar",
+  "cardType": "Tipo de tarjeta",
+  "cardTypeAppIcon": "Icono de 32×32",
+  "cardTypeLibraryCapsule": "Cápsula de biblioteca",
+  "cardTypeMainCapsule": "Cápsula principal",
+  "cardTypeStoreHeader": "Cabecera de tienda",
+  "catalogEmptyDescription": "Conecta Steam para obtener tus juegos y el tiempo jugado.",
+  "catalogEmptyTitle": "Tu biblioteca local está vacía",
+  "catalogEmptyWithSession": "Ya has iniciado sesión en Steam. Actualiza la biblioteca para cargar tus juegos y el tiempo jugado.",
+  "catalogNoResultsHint": "Cambia la búsqueda o los filtros.",
+  "catalogReadFailed": "No se pudo leer el catálogo local",
+  "catalogResultsCount": "{arg0} resultados",
+  "@catalogResultsCount": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "catalogSearchHint": "Nombre o AppID",
+  "clearAll": "Borrar todo",
+  "clearAllTargetsAction": "Borrar todos los objetivos",
+  "clearAllTargetsDescription": "Se eliminarán los objetivos de parada automática de {arg0} aplicaciones de toda la biblioteca.",
+  "@clearAllTargetsDescription": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "clearAllTargetsTitle": "¿Borrar todos los objetivos?",
+  "clearLibraryCache": "Borrar la caché de la biblioteca",
+  "clearTargets": "Borrar objetivos",
+  "clearTargetsIgnoresFiltersHint": "La búsqueda y los filtros actuales no se aplican. Se pedirá confirmación antes de eliminar los objetivos.",
+  "close": "Cerrar",
+  "concurrentApps": "Aplicaciones simultáneas",
+  "concurrentLimitReached": "Se ha alcanzado el límite de aplicaciones simultáneas: {arg0}.",
+  "@concurrentLimitReached": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "confirmLaunch": "Confirmar inicio",
+  "connectSteam": "Conectar Steam",
+  "copyAppId": "Copiar AppID",
+  "currentAppLabel": "actual: {arg0}",
+  "@currentAppLabel": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "currentPlaytime": "Tiempo jugado actual",
+  "currentSelection": "Selección actual",
+  "defaultDuration": "Duración predeterminada",
+  "delayBetweenGames": "Espera entre juegos",
+  "demo": "Demo",
+  "descending": "Descendente",
+  "detectAutomatically": "Detectar automáticamente",
+  "done": "Listo",
+  "edit": "Editar…",
+  "editAutoStopTarget": "Editar objetivo de parada automática",
+  "editCurrentPlaytime": "Editar tiempo jugado",
+  "editFilters": "Editar filtros",
+  "editingRequiresStoppedGames": "Detén primero los juegos y la cola activos.",
+  "eligibleApps": "Aplicaciones disponibles",
+  "emptyTargetClearsHint": "Déjalo vacío para borrar el objetivo",
+  "enterCode": "Introduce el código",
+  "entireLibrary": "Toda la biblioteca",
+  "entireLibraryOperationTitle": "Operación para toda la biblioteca",
+  "favorites": "Favoritos",
+  "favoritesLaunchDescription": "Los favoritos de la selección se ejecutan en paralelo, hasta {arg0} a la vez.",
+  "@favoritesLaunchDescription": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "filters": "Filtros",
+  "game": "Juego",
+  "gameDeadlineUpdateFailed": "No se pudo actualizar la hora de parada de {arg0}.",
+  "@gameDeadlineUpdateFailed": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "gameLaunchFailed": "No se pudo iniciar {arg0} (AppID {arg1}). {arg2}",
+  "@gameLaunchFailed": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      },
+      "arg1": {
+        "type": "Object"
+      },
+      "arg2": {
+        "type": "Object"
+      }
+    }
+  },
+  "gamePlaytimeSaveFailed": "No se pudo guardar el tiempo jugado de {arg0} (AppID {arg1}).",
+  "@gamePlaytimeSaveFailed": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      },
+      "arg1": {
+        "type": "Object"
+      }
+    }
+  },
+  "gameStopFailed": "No se pudo detener {arg0} (AppID {arg1}). El proceso sigue bajo supervisión.",
+  "@gameStopFailed": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      },
+      "arg1": {
+        "type": "Object"
+      }
+    }
+  },
+  "hidden": "Ocultos",
+  "hours": "Horas",
+  "hoursAbbreviation": "h",
+  "initializationFailed": "Error de inicialización",
+  "initializationFailureHint": "No se pudieron preparar los componentes de la aplicación. Los datos de la biblioteca no se modificaron.",
+  "interface": "INTERFAZ",
+  "languageEnglish": "Inglés",
+  "languageRussian": "Ruso",
+  "lastPlayed": "Última sesión",
+  "launchAction": "Iniciar",
+  "launchApps": "Iniciar aplicaciones",
+  "launchConfirmationHint": "El inicio comienza inmediatamente después de confirmar.",
+  "launchMenuLabel": "INICIAR",
+  "launchOptionsAction": "Iniciar…",
+  "launchOrder": "Orden de inicio",
+  "launchUsesFiltersHint": "El inicio respeta la búsqueda y todos los filtros activos del catálogo.",
+  "libraryCache": "Caché de la biblioteca",
+  "libraryCacheAppCount": "{count, plural, =0{No hay aplicaciones en caché} one{{count} aplicación en caché} other{{count} aplicaciones en caché}}",
+  "@libraryCacheAppCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryCacheClearDescription": "Elimina de SSF la lista de juegos descargada, el tiempo jugado, los favoritos y los objetivos. Tu sesión de Steam se conservará para la próxima actualización.",
+  "libraryCacheCleared": "Caché de la biblioteca borrada. Tu sesión de Steam se ha conservado.",
+  "libraryCacheClearFailed": "No se pudo borrar la caché de la biblioteca. Inténtalo de nuevo.",
+  "libraryCacheCounting": "Contando aplicaciones en caché…",
+  "libraryCacheCountUnavailable": "No se pudo leer el número de aplicaciones en caché.",
+  "librarySaveFailed": "No se pudo guardar la biblioteca. Actualízala de nuevo.",
+  "librarySaving": "Guardando la biblioteca en el catálogo…",
+  "libraryUpdated": "Biblioteca actualizada: {arg0} aplicaciones.",
+  "@libraryUpdated": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "libraryUpdatedPartially": "Biblioteca actualizada: {arg0} aplicaciones. Algunos datos de Steam no están disponibles.",
+  "@libraryUpdatedPartially": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "lowPlaytimeDurationLabel": "Si tiene menos de 30 minutos",
+  "manage": "Administrar…",
+  "manualAppsCount": "manuales: {arg0}",
+  "@manualAppsCount": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "manualLaunch": "Inicio manual",
+  "marked": "Marcados",
+  "markedLaunchDescription": "Los juegos con un objetivo pendiente se ejecutan en paralelo, hasta {arg0} a la vez.",
+  "@markedLaunchDescription": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "maximum": "Máximo",
+  "maximumExclusive": "Máximo <",
+  "maximumTarget": "Objetivo máximo",
+  "milestoneTargetRulesHint": "El siguiente objetivo se fija en el minuto exacto de un hito. Los juegos que ya lo han alcanzado o lo superan hasta en 5 minutos no se vuelven a marcar.",
+  "minimum": "Mínimo",
+  "minimumInclusive": "Mínimo ≥",
+  "minimumTarget": "Objetivo mínimo",
+  "minutes": "Minutos",
+  "minutesAbbreviation": "min",
+  "mode": "Modo",
+  "moreActions": "Más acciones",
+  "name": "Nombre",
+  "nonNegativeIntegerRequired": "Introduce un entero mayor o igual que 0",
+  "nothingFound": "Sin resultados",
+  "optional": "Opcional",
+  "optionalMaximumHint": "Opcional — se usa el máximo por defecto",
+  "other": "Otro",
+  "ownership": "Propiedad",
+  "ownershipFromSteamOnRefresh": "Usar los datos de Steam en la próxima actualización",
+  "ownershipNonPersonal": "Ajeno / desconocido",
+  "ownershipPersonal": "Mío",
+  "ownershipPersonalFilter": "Propios",
+  "ownershipUnknown": "Desconocido",
+  "ownershipUnknownFilter": "Desconocidos",
+  "password": "Contraseña",
+  "pause": "Pausar",
+  "playtime": "Tiempo jugado",
+  "playtimeClearsReachedTargetHint": "El nuevo tiempo jugado alcanza el objetivo de parada automática, por lo que se borrará el objetivo.",
+  "playtimeHours": "{arg0} h",
+  "@playtimeHours": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "playtimeHoursApproximate": "≈ {arg0} h",
+  "@playtimeHoursApproximate": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "playtimeInMinutes": "Tiempo jugado en minutos",
+  "playtimeMilestones": "Hitos de tiempo jugado",
+  "playtimeMinutes": "{arg0} min",
+  "@playtimeMinutes": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "playtimeMinutesExample": "Por ejemplo, 120",
+  "positiveIntegerRequired": "Introduce un entero positivo",
+  "queuedAppsCount": "en cola: {arg0}",
+  "@queuedAppsCount": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "queuePausedLabel": "{arg0} · en pausa",
+  "@queuePausedLabel": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "range": "Intervalo",
+  "refreshLibrary": "Actualizar biblioteca",
+  "refreshQrCode": "Actualizar código QR",
+  "removeFromFavorites": "Quitar de favoritos",
+  "reset": "Restablecer",
+  "resetAll": "Restablecer todo",
+  "resume": "Reanudar",
+  "retry": "Reintentar",
+  "runnerAccountMismatch": "Comprueba que la biblioteca de SSF y el cliente Steam usan la misma cuenta.",
+  "runnerCleanupFailed": "No se pudo activar la limpieza automática de los procesos de juego. Reinicia SSF e inténtalo de nuevo.",
+  "runnerLaunchUnconfirmed": "SteamAPI no confirmó el inicio.",
+  "runnerLibraryRequired": "Carga primero la biblioteca de tu cuenta de Steam.",
+  "runnerUpdateRequired": "Recompila o actualiza ssf_game junto con SSF.",
+  "runningAppsCount": "En ejecución: {arg0}/{arg1}",
+  "@runningAppsCount": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      },
+      "arg1": {
+        "type": "Object"
+      }
+    }
+  },
+  "save": "Guardar",
+  "searchByName": "Buscar por nombre",
+  "secondsAbbreviation": "s",
+  "selectAValue": "Selecciona un valor",
+  "selectionHasNoEligibleApps": "La selección actual no contiene aplicaciones disponibles.",
+  "sequentialLaunchDescription": "La selección actual se ejecuta de una en una.",
+  "sequentialQueue": "Cola secuencial",
+  "sequentialQueueBlocksManualLaunch": "El inicio manual no está disponible mientras haya una cola secuencial activa.",
+  "sequentialQueueRequiresStoppedGames": "Detén las aplicaciones activas antes de iniciar una cola secuencial.",
+  "sequentialStartAppId": "Empezar desde el AppID",
+  "sequentialTimingInvalid": "La duración debe ser de al menos 1 segundo y la espera debe ser mayor o igual que 0.",
+  "setOwnership": "Establecer propiedad",
+  "setTargets": "Fijar objetivos…",
+  "settings": "Ajustes",
+  "settingsAppearance": "Apariencia",
+  "settingsCardPreviewHint": "Selecciona una tarjeta para aplicar su formato al catálogo inmediatamente.",
+  "settingsImmediateSaveHint": "Los cambios se guardan inmediatamente, sin pulsar Aplicar.",
+  "settingsIntegrationsSteam": "Integraciones · Steam",
+  "settingsLanguage": "Idioma",
+  "settingsSaved": "Ajustes guardados",
+  "settingsSaveError": "No se pudo guardar el ajuste.",
+  "settingsSaving": "Guardando…",
+  "signIn": "Iniciar sesión",
+  "signOut": "Cerrar sesión",
+  "sortBy": "Ordenar por",
+  "soundtrack": "Banda sonora",
+  "startAppNotInSelection": "El AppID indicado no se encontró en la selección ordenada actual.",
+  "status": "Estado",
+  "statusRunning": "En ejecución",
+  "steamAccountName": "Nombre de cuenta de Steam",
+  "steamAuthInputFailed": "No se pudo enviar la respuesta a Steam",
+  "steamConnecting": "Conectando con Steam…",
+  "steamConnection": "Conexión con Steam",
+  "steamCredentialsChecking": "Comprobando las credenciales de Steam…",
+  "steamCredentialsRequired": "Introduce tu nombre de cuenta y contraseña de Steam",
+  "steamCredentialsTitle": "Inicia sesión con tu nombre de cuenta",
+  "steamFamilyLibraryLoading": "Cargando la biblioteca de Steam Family…",
+  "steamGuardAppPrompt": "Introduce el código de Steam Guard de la aplicación de Steam",
+  "steamGuardChecking": "Comprobando el código de Steam Guard…",
+  "steamGuardCode": "Código de Steam Guard",
+  "steamGuardEmailLabel": "Código del correo de Steam",
+  "steamGuardEmailPrompt": "Introduce el código de Steam Guard recibido por correo",
+  "steamGuardSubmit": "Confirmar código",
+  "steamHelperProtocolError": "Respuesta no válida del asistente de biblioteca",
+  "steamHelperReadFailed": "No se pudo leer la respuesta del asistente de biblioteca",
+  "steamHelperStartFailed": "No se pudo iniciar el asistente de biblioteca. Comprueba que ssf_steam_helper.exe esté instalado junto con SSF.",
+  "steamHelperStopUnconfirmed": "No se pudo confirmar la parada del proceso. Intenta cancelarlo de nuevo.",
+  "steamId": "SteamID",
+  "steamLibraryFailedWithCode": "Sesión iniciada. No se pudo obtener la biblioteca (código {arg0}).",
+  "@steamLibraryFailedWithCode": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "steamLibraryLoading": "Sesión iniciada. Cargando la biblioteca…",
+  "steamLibraryMerging": "Combinando los datos de la biblioteca…",
+  "steamLibraryPartialStatus": "Sesión iniciada. Los datos de la biblioteca están disponibles parcialmente.",
+  "steamLibraryReceived": "Sesión iniciada. Biblioteca recibida.",
+  "steamLibraryTimeout": "Sesión iniciada, pero se agotó el tiempo de espera de la biblioteca.",
+  "steamMetadataLoading": "Cargando nombres y tipos de aplicaciones…",
+  "steamMobileConfirmationPrompt": "Aprueba el inicio de sesión en la aplicación de Steam de tu teléfono",
+  "steamPersonalLibraryLoading": "Cargando licencias y aplicaciones propias…",
+  "steamPlaytimeUpdating": "Actualizando el tiempo jugado…",
+  "steamPrivateAppsChecking": "Comprobando las aplicaciones privadas…",
+  "steamQrAccessibilityLabel": "Código QR para iniciar sesión con Steam Mobile",
+  "steamQrInstructions": "Usa la aplicación móvil de Steam para iniciar sesión con un código QR",
+  "steamQrScanPrompt": "Escanea el código QR con Steam Mobile y aprueba el inicio de sesión",
+  "steamQrTitle": "O usa un código QR",
+  "steamSessionActive": "Ya tienes una sesión activa",
+  "steamSessionChecking": "Comprobando la sesión guardada…",
+  "steamSessionPrivacyHint": "Tu contraseña no se guarda. La sesión protegida se usa para futuras actualizaciones sin volver a iniciar sesión.",
+  "steamSessionReadFailed": "No se pudo leer la sesión guardada",
+  "steamSignedOutCacheCleared": "Sesión cerrada. Caché de la biblioteca borrada.",
+  "steamSignedOutStatus": "Sesión de Steam cerrada. Elige un método de inicio de sesión.",
+  "steamSignInCancelled": "Inicio de sesión cancelado",
+  "steamSignInCancelling": "Cancelando el inicio de sesión…",
+  "steamSignInFailedWithCode": "No se pudo iniciar sesión (código {arg0}). Inténtalo de nuevo.",
+  "@steamSignInFailedWithCode": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "steamSigningOut": "Cerrando sesión y borrando la caché…",
+  "steamSignInMethodPrompt": "Elige un método de inicio de sesión",
+  "steamSignInTimeout": "Se agotó el tiempo para iniciar sesión",
+  "steamSignOutFailed": "No se pudo completar el cierre de sesión. Inténtalo de nuevo.",
+  "steamSyncFailed": "Error al iniciar sesión o solicitar la biblioteca: {arg0}",
+  "@steamSyncFailed": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "stopAction": "Detener",
+  "stopAll": "Detener todo",
+  "stopAllProcessesDescription": "Se detendrán todos los juegos y procesos auxiliares de Steam iniciados por esta instancia de SteamSpaceFarm. Se cancelarán los inicios en cola y la actualización de la biblioteca.",
+  "stopAllProcessesFailed": "No se pudieron forzar las paradas de los procesos.",
+  "stopAllProcessesTitle": "¿Forzar la parada de todo?",
+  "stopBatchQueueDescription": "Se vaciará la cola y se detendrán las aplicaciones iniciadas por ella.",
+  "stopManualApps": "Detener aplicaciones manuales",
+  "stopManualAppsCount": "Detener aplicaciones manuales · {arg0}",
+  "@stopManualAppsCount": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "stopManualAppsDescription": "Se detendrán las aplicaciones iniciadas manualmente en esta sesión: {arg0}.",
+  "@stopManualAppsDescription": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "stopManualAppsTitle": "¿Detener las aplicaciones iniciadas manualmente?",
+  "stopMenuLabel": "DETENER",
+  "stopQueue": "Detener cola",
+  "stopQueueTitle": "¿Detener la cola activa?",
+  "stopSequentialQueueDescription": "Se detendrá la aplicación actual y se eliminarán las {arg0} entradas restantes.",
+  "@stopSequentialQueueDescription": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "storage": "ALMACENAMIENTO",
+  "targetAlreadyReachedHint": "El tiempo jugado actual es de {arg0} min. Este objetivo se borrará porque ya se ha alcanzado.",
+  "@targetAlreadyReachedHint": {
+    "placeholders": {
+      "arg0": {
+        "type": "Object"
+      }
+    }
+  },
+  "targetPlaytime": "Objetivo de tiempo jugado",
+  "targetPlaytimeInMinutes": "Objetivo de tiempo en minutos",
+  "targetRangeBoundsHint": "Los objetivos se aplican desde el tiempo mínimo incluido hasta el máximo excluido.",
+  "technicalDetails": "Detalles técnicos",
+  "timeUntilTarget": "Tiempo restante",
+  "tool": "Herramienta",
+  "video": "Vídeo",
+  "clearText": "Borrar texto",
+  "refreshOnStartup": "Actualizar biblioteca al iniciar",
+  "refreshOnStartupHint": "Mostrar la biblioteca guardada al instante y actualizarla en segundo plano con la sesión guardada.",
+  "runnerSteamPresenceFailed": "No se pudo cambiar al estado Invisible. Comprueba tu conexión con Steam y vuelve a intentarlo.",
+  "invisibleWhilePlaying": "Ponerse invisible al iniciar juegos",
+  "invisibleWhilePlayingHint": "Para Steamworks y SteamKit. Restaura el estado anterior al detener todos los juegos. SteamKit también funciona sin el cliente local de Steam.",
+  "experimentalSteamKit": "Iniciar mediante SteamKit — EXPERIMENTAL",
+  "experimentalSteamKitHint": "Las sesiones de juego y el estado Invisible funcionan sin el cliente local de Steam abierto: basta con iniciar sesión en SteamSpaceFarm. Steam determina si se registra el tiempo jugado.",
+  "gamesBlockLibrary": "Detén todos los juegos antes de actualizar la biblioteca o cerrar sesión.",
+  "leaveLibraryUpdateTitle": "¿Detener la actualización de la biblioteca?",
+  "leaveLibraryUpdateMessage": "Si sales de esta pantalla, se detendrá la actualización de la biblioteca. El catálogo guardado seguirá disponible.",
+  "leaveScreen": "Detener y salir",
+  "libraryRefreshInProgress": "La biblioteca se está actualizando. Espera a que termine antes de iniciar juegos.",
+  "sessionSettings": "Biblioteca y sesiones",
+  "languageSpanish": "Español",
+  "runnerSteamKitFailed": "SteamKit no pudo confirmar la sesión. Vuelve a iniciar sesión en Steam e inténtalo de nuevo.",
+  "sessionSettingsShort": "Sesiones",
+  "gameSessionInterrupted": "La sesión de {name} (AppID {appId}) terminó inesperadamente. Comprueba tu conexión con Steam antes de reiniciarla. Las colas activas se han pausado.",
+  "@gameSessionInterrupted": {"placeholders": {"name": {"type": "String"}, "appId": {"type": "int"}}},
+  "steamPresenceRestoreFailed": "No se pudo restaurar tu estado anterior de Steam tras varios intentos. Comprueba tu estado en Steam."
+}

@@ -1,7 +1,7 @@
 name: ssf_flutter
 description: "Manage your Steam library, track playtime, and control game sessions, with Steam Family support."
 publish_to: 'none'
-version: 2.0.0+10
+version: 2.1.0+11
 environment:
   sdk: ^3.13.0
 
@@ -10,12 +10,14 @@ dependencies:
   ffi: ^2.2.0
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   intl: ^0.20.3
-  material_ui: ^1.2.0
+  material_ui: ^1.7.0
   path: ^1.9.1
   path_provider: ^2.1.6
   qr: ^4.0.0
-  shared_preferences: ^2.5.5
+  shared_preferences: ^2.5.6
 
 dev_dependencies:
   carapacik_lints: ^3.13.1
@@ -23,13 +25,7 @@ dev_dependencies:
     sdk: flutter
 
 flutter:
+  generate: true
   assets:
     - assets/logo/app_logo_transparent.png
   uses-material-design: true
-
-flutter_intl:
-  enabled: true
-  main_locale: en
-  class_name: GeneratedLocalizations
-  arb_dir: lib/src/localization/translations
-  output_dir: lib/src/localization/generated

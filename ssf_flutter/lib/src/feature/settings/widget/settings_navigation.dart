@@ -5,6 +5,7 @@ import 'package:ssf_flutter/src/ui_kit/steam_tokens.dart';
 
 enum SettingsSection() {
   appearance,
+  sessions,
   steam,
   cache,
 }
@@ -13,6 +14,7 @@ class const SettingsSideNavigation({
   required final SettingsSection selected,
   required final bool extended,
   required final ValueChanged<SettingsSection> onSelected,
+  final bool appearanceOnly = false,
   super.key,
 }) extends StatelessWidget {
   @override
@@ -47,11 +49,19 @@ class const SettingsSideNavigation({
             ),
             const SizedBox(height: 4),
             _SettingsNavigationItem(
+              icon: const Icon(Icons.sync),
+              label: context.l10n.sessionSettings,
+              selected: selected == SettingsSection.sessions,
+              extended: extended,
+              onPressed: appearanceOnly ? null : () => onSelected(SettingsSection.sessions),
+            ),
+            const SizedBox(height: 4),
+            _SettingsNavigationItem(
               icon: const Icon(Icons.link_outlined),
               label: context.l10n.settingsIntegrationsSteam,
               selected: selected == SettingsSection.steam,
               extended: extended,
-              onPressed: () => onSelected(SettingsSection.steam),
+              onPressed: appearanceOnly ? null : () => onSelected(SettingsSection.steam),
             ),
             const SizedBox(height: 4),
             _SettingsNavigationItem(
@@ -59,7 +69,7 @@ class const SettingsSideNavigation({
               label: GeneratedLocalizations.of(context).libraryCache,
               selected: selected == SettingsSection.cache,
               extended: extended,
-              onPressed: () => onSelected(SettingsSection.cache),
+              onPressed: appearanceOnly ? null : () => onSelected(SettingsSection.cache),
             ),
           ],
         ),
@@ -71,6 +81,7 @@ class const SettingsSideNavigation({
 class const SettingsBottomNavigation({
   required final SettingsSection selected,
   required final ValueChanged<SettingsSection> onSelected,
+  final bool appearanceOnly = false,
   super.key,
 }) extends StatelessWidget {
   @override
@@ -94,12 +105,22 @@ class const SettingsBottomNavigation({
             ),
             Expanded(
               child: _SettingsNavigationItem(
+                icon: const Icon(Icons.sync),
+                label: context.l10n.sessionSettingsShort,
+                selected: selected == SettingsSection.sessions,
+                extended: true,
+                compact: true,
+                onPressed: appearanceOnly ? null : () => onSelected(SettingsSection.sessions),
+              ),
+            ),
+            Expanded(
+              child: _SettingsNavigationItem(
                 icon: const Icon(Icons.link_outlined),
                 label: 'Steam',
                 selected: selected == SettingsSection.steam,
                 extended: true,
                 compact: true,
-                onPressed: () => onSelected(SettingsSection.steam),
+                onPressed: appearanceOnly ? null : () => onSelected(SettingsSection.steam),
               ),
             ),
             Expanded(
@@ -109,7 +130,7 @@ class const SettingsBottomNavigation({
                 selected: selected == SettingsSection.cache,
                 extended: true,
                 compact: true,
-                onPressed: () => onSelected(SettingsSection.cache),
+                onPressed: appearanceOnly ? null : () => onSelected(SettingsSection.cache),
               ),
             ),
           ],
@@ -124,7 +145,7 @@ class const _SettingsNavigationItem({
   required final String label,
   required final bool selected,
   required final bool extended,
-  required final VoidCallback onPressed,
+  required final VoidCallback? onPressed,
   final bool compact = false,
 }) extends StatefulWidget {
   @override
@@ -135,52 +156,55 @@ class _SettingsNavigationItemState() extends State<_SettingsNavigationItem> {
   bool _hovered = false;
 
   @override
-  Widget build(BuildContext context) => MouseRegion(
-    cursor: SystemMouseCursors.click,
-    onEnter: (_) => setState(() => _hovered = true),
-    onExit: (_) => setState(() => _hovered = false),
-    child: GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: widget.onPressed,
-      child: AnimatedContainer(
-        duration: SteamUiDurations.regular,
-        height: widget.compact ? 54 : 42,
-        padding: EdgeInsets.symmetric(horizontal: widget.extended ? 12 : 0),
-        decoration: BoxDecoration(
-          gradient: widget.selected || _hovered
-              ? LinearGradient(
-                  colors: widget.selected
-                      ? const [Color(0x663D6B85), Color(0x1A3D6B85)]
-                      : const [Color(0x3348505E), Color(0x0D48505E)],
-                )
-              : null,
-          border: Border(
-            left: BorderSide(color: widget.selected ? SteamUiColors.accent : Colors.transparent, width: 3),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: widget.extended ? MainAxisAlignment.start : MainAxisAlignment.center,
-          children: [
-            IconTheme(
-              data: IconThemeData(size: 19, color: widget.selected ? Colors.white : SteamUiColors.textMuted),
-              child: widget.icon,
+  Widget build(BuildContext context) => Opacity(
+    opacity: widget.onPressed == null ? 0.4 : 1,
+    child: MouseRegion(
+      cursor: widget.onPressed == null ? SystemMouseCursors.basic : SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: SteamUiDurations.regular,
+          height: widget.compact ? 54 : 42,
+          padding: EdgeInsets.symmetric(horizontal: widget.extended ? 12 : 0),
+          decoration: BoxDecoration(
+            gradient: widget.selected || (_hovered && widget.onPressed != null)
+                ? LinearGradient(
+                    colors: widget.selected
+                        ? const [Color(0x663D6B85), Color(0x1A3D6B85)]
+                        : const [Color(0x3348505E), Color(0x0D48505E)],
+                  )
+                : null,
+            border: Border(
+              left: BorderSide(color: widget.selected ? SteamUiColors.accent : Colors.transparent, width: 3),
             ),
-            if (widget.extended) ...[
-              const SizedBox(width: 10),
-              Flexible(
-                child: Text(
-                  widget.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: widget.selected ? Colors.white : SteamUiColors.textSubtitle,
-                    fontSize: 13,
-                    fontWeight: widget.selected ? FontWeight.w600 : FontWeight.w400,
+          ),
+          child: Row(
+            mainAxisAlignment: widget.extended ? MainAxisAlignment.start : MainAxisAlignment.center,
+            children: [
+              IconTheme(
+                data: IconThemeData(size: 19, color: widget.selected ? Colors.white : SteamUiColors.textMuted),
+                child: widget.icon,
+              ),
+              if (widget.extended) ...[
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    widget.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: widget.selected ? Colors.white : SteamUiColors.textSubtitle,
+                      fontSize: 13,
+                      fontWeight: widget.selected ? FontWeight.w600 : FontWeight.w400,
+                    ),
                   ),
                 ),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     ),

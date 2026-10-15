@@ -8,6 +8,10 @@ internal static class Program
 {
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length > 0 && args[0] == "--steam-presence")
+            return SteamPresenceHost.Run(args);
+        if (args.Length > 0 && args[0] == "--steamkit-play")
+            return await SteamKitPlayHost.RunAsync(args).ConfigureAwait(false);
         var parsed = CliParser.Parse(args);
         if (!parsed.Success)
         {
@@ -193,6 +197,8 @@ internal static class Program
 
     private static async Task<int> RunSyntheticChecksAsync()
     {
+        SteamKitPlayHost.RunChecks();
+        SteamPresenceChecks.Run();
         JsonContractChecks.Run();
         PlaytimeChecks.Run();
         await AuthInputChecks.RunAsync().ConfigureAwait(false);
@@ -346,6 +352,7 @@ internal static class Program
         Console.Out.WriteLine(JsonSerializer.Serialize(new SyntheticResult("synthetic_pass", new[]
             {
                 "json_source_generation",
+                "presence_restore_retry_manual_status_account_isolation",
                 "parser",
                 "license_filtering",
                 "private_skeleton",

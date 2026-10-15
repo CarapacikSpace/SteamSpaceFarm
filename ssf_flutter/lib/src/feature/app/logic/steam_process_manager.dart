@@ -1,16 +1,34 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:ssf_flutter/src/logging/app_logger.dart';
 
-class SteamProcessManager() {
+class SteamProcessManager() extends ChangeNotifier {
+  bool _lastGameActivity = false;
+
+  void updateActivity() {
+    final bool active = hasActiveGames;
+    if (active != _lastGameActivity) {
+      _lastGameActivity = active;
+      notifyListeners();
+    }
+  }
+
   final _registrations = <SteamProcessRegistration>{};
   Future<void>? _stopping;
   bool _closing = false;
 
   bool get acceptingStarts => !_closing && _stopping == null;
+  bool get hasActiveGames => _registrations.any((entry) => entry._game && entry._isActive());
+  bool get hasActiveHelpers => _registrations.any((entry) => !entry._game && entry._isActive());
+  bool get acceptingGameStarts => acceptingStarts && !hasActiveHelpers;
 
-  SteamProcessRegistration register({required bool Function() isActive, required Future<void> Function() stop}) {
-    final registration = SteamProcessRegistration._(this, isActive, stop);
+  SteamProcessRegistration register({
+    required bool Function() isActive,
+    required Future<void> Function() stop,
+    bool game = false,
+  }) {
+    final registration = SteamProcessRegistration._(this, isActive, stop, game);
     _registrations.add(registration);
     return registration;
   }
@@ -58,6 +76,7 @@ class SteamProcessRegistration._(
   final SteamProcessManager _manager,
   final bool Function() _isActive,
   final Future<void> Function() _stop,
+  final bool _game,
 ) {
   bool _released = false;
 

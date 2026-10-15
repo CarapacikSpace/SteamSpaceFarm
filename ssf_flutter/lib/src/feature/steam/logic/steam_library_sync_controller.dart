@@ -79,7 +79,7 @@ class SteamLibrarySyncController({
       }
       _hasSavedSession = exists;
       _setState(const SteamSyncState(phase: SteamSyncPhase.idle));
-      if (!exists || refresh) {
+      if ((!exists || refresh) && !processManager.hasActiveGames) {
         await start(exists ? SteamSignInMethod.session : SteamSignInMethod.qr);
       }
     } on Object {
@@ -90,6 +90,9 @@ class SteamLibrarySyncController({
   }
 
   Future<void> forgetSessions() async {
+    if (processManager.hasActiveGames) {
+      throw StateError('Games must be stopped');
+    }
     await cancel();
     if (busy) {
       throw StateError('Steam process is still running');
@@ -109,7 +112,7 @@ class SteamLibrarySyncController({
   }
 
   Future<void> start(SteamSignInMethod method, {String username = '', String password = ''}) {
-    if (busy || _disposed || !processManager.acceptingStarts) {
+    if (busy || _disposed || !processManager.acceptingStarts || processManager.hasActiveGames) {
       return Future<void>.value();
     }
     final int generation = ++_generation;

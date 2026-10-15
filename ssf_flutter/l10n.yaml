@@ -1,0 +1,7 @@
+arb-dir: lib/src/localization/translations
+template-arb-file: intl_en.arb
+output-dir: lib/src/localization/generated
+output-localization-file: l10n.dart
+output-class: GeneratedLocalizations
+nullable-getter: false
+format: true

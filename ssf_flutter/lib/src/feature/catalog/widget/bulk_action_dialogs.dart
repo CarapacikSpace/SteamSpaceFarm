@@ -8,6 +8,7 @@ import 'package:ssf_flutter/src/feature/game_execution/logic/beautiful_hours.dar
 import 'package:ssf_flutter/src/feature/game_execution/model/beautiful_hours_configuration.dart';
 import 'package:ssf_flutter/src/feature/game_execution/model/bulk_actions.dart';
 import 'package:ssf_flutter/src/localization/generated/l10n.dart';
+import 'package:ssf_flutter/src/ui_kit/controls/steam_text_field.dart';
 import 'package:ssf_flutter/src/ui_kit/steam_ui_kit.dart';
 
 const Color _muted = Color(0xFF8D9BAB);
@@ -177,11 +178,14 @@ class _BulkLaunchFormState() extends State<BulkLaunchForm> {
         _ModePicker(
           values: BulkLaunchMode.values,
           selected: _mode,
-          label: (value) => _launchModeLabel(value as BulkLaunchMode),
+          label: (value) => _launchModeLabel(GeneratedLocalizations.of(context), value as BulkLaunchMode),
           onSelected: (value) => _selectMode(value as BulkLaunchMode),
         ),
         const SizedBox(height: 10),
-        Text(_launchModeDescription(_mode, _concurrentLimit), style: const TextStyle(color: _muted)),
+        Text(
+          _launchModeDescription(GeneratedLocalizations.of(context), _mode, _concurrentLimit),
+          style: const TextStyle(color: _muted),
+        ),
         if (_mode != BulkLaunchMode.allSequential) ...[
           const SizedBox(height: 14),
           Row(
@@ -253,7 +257,7 @@ class _BulkLaunchFormState() extends State<BulkLaunchForm> {
                   width: orderWidth,
                   items: BulkLaunchOrder.values,
                   value: _order,
-                  labelBuilder: _launchOrderLabel,
+                  labelBuilder: (value) => _launchOrderLabel(GeneratedLocalizations.of(context), value),
                   onChanged: (value) => setState(() {
                     _order = value;
                     _error = null;
@@ -470,7 +474,7 @@ class _BulkMarkFormState() extends State<BulkMarkForm> {
         _ModePicker(
           values: BulkMarkMode.values,
           selected: _mode,
-          label: (value) => _markModeLabel(value as BulkMarkMode),
+          label: (value) => _markModeLabel(GeneratedLocalizations.of(context), value as BulkMarkMode),
           onSelected: (value) => setState(() {
             _mode = value as BulkMarkMode;
             _error = null;
@@ -545,7 +549,7 @@ class _BulkMarkFormState() extends State<BulkMarkForm> {
       const SizedBox(height: 14),
       Text(GeneratedLocalizations.of(context).playtimeMilestones, style: const TextStyle(fontSize: 12, color: _muted)),
       const SizedBox(height: 8),
-      TextField(
+      SteamTextField(
         controller: _beautifulValues,
         minLines: 2,
         maxLines: 3,
@@ -720,7 +724,7 @@ class const _NumberField({
     children: [
       Text(label, style: const TextStyle(fontSize: 12, color: _muted)),
       const SizedBox(height: 8),
-      TextField(
+      SteamTextField(
         controller: controller,
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -744,7 +748,7 @@ class const _TimeField({
     children: [
       Text(label, style: const TextStyle(fontSize: 12, color: _muted)),
       const SizedBox(height: 8),
-      TextField(
+      SteamTextField(
         controller: controller,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [
@@ -840,30 +844,30 @@ class const _SectionLabel(final String text) extends StatelessWidget {
   );
 }
 
-String _launchModeLabel(BulkLaunchMode mode) => switch (mode) {
-  BulkLaunchMode.marked => GeneratedLocalizations.current.marked,
-  BulkLaunchMode.favorites => GeneratedLocalizations.current.favorites,
-  BulkLaunchMode.allSequential => GeneratedLocalizations.current.allSequentially,
+String _launchModeLabel(GeneratedLocalizations l10n, BulkLaunchMode mode) => switch (mode) {
+  BulkLaunchMode.marked => l10n.marked,
+  BulkLaunchMode.favorites => l10n.favorites,
+  BulkLaunchMode.allSequential => l10n.allSequentially,
 };
 
-String _launchModeDescription(BulkLaunchMode mode, int limit) => switch (mode) {
-  BulkLaunchMode.marked => GeneratedLocalizations.current.markedLaunchDescription(limit),
-  BulkLaunchMode.favorites => GeneratedLocalizations.current.favoritesLaunchDescription(limit),
-  BulkLaunchMode.allSequential => GeneratedLocalizations.current.sequentialLaunchDescription,
+String _launchModeDescription(GeneratedLocalizations l10n, BulkLaunchMode mode, int limit) => switch (mode) {
+  BulkLaunchMode.marked => l10n.markedLaunchDescription(limit),
+  BulkLaunchMode.favorites => l10n.favoritesLaunchDescription(limit),
+  BulkLaunchMode.allSequential => l10n.sequentialLaunchDescription,
 };
 
-String _launchOrderLabel(BulkLaunchOrder order) => switch (order) {
-  BulkLaunchOrder.name => GeneratedLocalizations.current.name,
-  BulkLaunchOrder.playtime => GeneratedLocalizations.current.currentPlaytime,
-  BulkLaunchOrder.lastPlayed => GeneratedLocalizations.current.lastPlayed,
+String _launchOrderLabel(GeneratedLocalizations l10n, BulkLaunchOrder order) => switch (order) {
+  BulkLaunchOrder.name => l10n.name,
+  BulkLaunchOrder.playtime => l10n.currentPlaytime,
+  BulkLaunchOrder.lastPlayed => l10n.lastPlayed,
   BulkLaunchOrder.appId => 'AppID',
-  BulkLaunchOrder.remainingMarkedTime => GeneratedLocalizations.current.timeUntilTarget,
+  BulkLaunchOrder.remainingMarkedTime => l10n.timeUntilTarget,
 };
 
-String _markModeLabel(BulkMarkMode mode) => switch (mode) {
-  BulkMarkMode.range => GeneratedLocalizations.current.range,
-  BulkMarkMode.beautifulHours => GeneratedLocalizations.current.playtimeMilestones,
-  BulkMarkMode.clearMarks => GeneratedLocalizations.current.clearAll,
+String _markModeLabel(GeneratedLocalizations l10n, BulkMarkMode mode) => switch (mode) {
+  BulkMarkMode.range => l10n.range,
+  BulkMarkMode.beautifulHours => l10n.playtimeMilestones,
+  BulkMarkMode.clearMarks => l10n.clearAll,
 };
 
 InputDecoration _fieldDecoration({required String label, String? hint, String? suffix}) => InputDecoration(

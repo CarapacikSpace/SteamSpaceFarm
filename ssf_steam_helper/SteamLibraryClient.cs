@@ -25,6 +25,8 @@ public sealed class SteamLibraryClient : IDisposable
     private Task? _callbackLoop;
     private ulong _steamId;
     private readonly IAuthInput _authInput;
+    private readonly TaskCompletionSource<bool> _connectionLost = NewTcs<bool>();
+    public Task ConnectionLost => _connectionLost.Task;
 
     public SteamLibraryClient() : this(new ConsoleAuthInput()) { }
 
@@ -43,6 +45,8 @@ public sealed class SteamLibraryClient : IDisposable
         _privateApps = _unifiedMessages.CreateService<AccountPrivateApps>();
 
         _callbacks.Subscribe<SteamClient.ConnectedCallback>(_ => _connected.TrySetResult(true));
+        _callbacks.Subscribe<SteamClient.DisconnectedCallback>(_ => _connectionLost.TrySetResult(true));
+        _callbacks.Subscribe<SteamUser.LoggedOffCallback>(_ => _connectionLost.TrySetResult(true));
         _callbacks.Subscribe<SteamUser.LoggedOnCallback>(callback =>
         {
             if (callback.Result == EResult.OK)
@@ -58,6 +62,29 @@ public sealed class SteamLibraryClient : IDisposable
     }
 
     public ulong SteamId => _steamId;
+
+    public void BeginPlayingSession(bool invisible = false)
+    {
+        // Library collection stays silent. A playing connection must announce its
+        // own persona; an online desktop client does not do this on its behalf.
+        var friends = _client.GetHandler<SteamFriends>()
+            ?? throw new InvalidOperationException("SteamFriends handler is unavailable.");
+        friends.SetPersonaState(invisible ? EPersonaState.Invisible : EPersonaState.Online);
+    }
+
+    public void SetPlayingGames(IEnumerable<uint> appIds)
+    {
+        _client.Send(CreateGamesPlayedMessage(appIds));
+    }
+
+    internal static ClientMsgProtobuf<CMsgClientGamesPlayed> CreateGamesPlayedMessage(IEnumerable<uint> appIds)
+    {
+        var message = new ClientMsgProtobuf<CMsgClientGamesPlayed>(EMsg.ClientGamesPlayedWithDataBlob);
+        message.Body.client_os_type = unchecked((uint)EOSType.Win11);
+        foreach (var appId in appIds)
+            message.Body.games_played.Add(new CMsgClientGamesPlayed.GamePlayed { game_id = new GameID(appId) });
+        return message;
+    }
 
     public Task StartAsync()
     {

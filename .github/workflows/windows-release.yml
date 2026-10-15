@@ -16,6 +16,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7.0.1
 
+      - name: Verify release version
+        shell: pwsh
+        run: |
+          $match = [regex]::Match((Get-Content ssf_flutter/pubspec.yaml -Raw), '(?m)^version: (\d+\.\d+\.\d+)\+\d+\s*$')
+          if (-not $match.Success -or $match.Groups[1].Value -ne $env:GITHUB_REF_NAME) {
+            throw 'The release tag must match the pubspec version.'
+          }
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2.23.0
         with:
@@ -37,6 +45,14 @@ jobs:
         shell: pwsh
         run: ./tools/windows/build_steam_library_helper.ps1
 
+      - name: Check native runner and Steam helper offline
+        shell: pwsh
+        run: |
+          dotnet run --project ssf_game/RunnerChecks/RunnerChecks.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { throw 'Native runner checks failed.' }
+          & ./ssf_steam_helper/bin/standalone/win-x64/ssf_steam_helper.exe --synthetic
+          if ($LASTEXITCODE -ne 0) { throw 'Steam helper checks failed.' }
+
       - name: Cache Flutter dependencies
         uses: actions/cache@v6.1.0
         with:
@@ -49,7 +65,7 @@ jobs:
         run: flutter pub get
         working-directory: ssf_flutter
 
-      - name: Generate localizations with global intl_utils
+      - name: Generate localizations with Flutter
         shell: pwsh
         run: ./tools/windows/generate_localizations.ps1
 
@@ -57,21 +73,36 @@ jobs:
         run: dart analyze --fatal-infos
         working-directory: ssf_flutter
 
+      - name: Run Flutter tests
+        run: flutter test
+        working-directory: ssf_flutter
+
       - name: Build release version for Windows
         run: flutter build windows --release
         working-directory: ssf_flutter
 
       - name: Archive Windows build as zip
+        shell: pwsh
         run: |
           $version = $env:GITHUB_REF_NAME
           $outputPath = "build/windows/x64/runner/Release"
           $zipPath = "ssf_win_${version}.zip"
           Compress-Archive -Path "$outputPath\*" -DestinationPath $zipPath
+          $hash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $zipPath" | Set-Content -LiteralPath "$zipPath.sha256" -Encoding utf8
+          $heading = ($version -split '\.')[0..1] -join '.'
+          $pattern = '(?ms)^## ' + [regex]::Escape($heading) + '\r?\n(.*?)(?=^## |\z)'
+          $notes = [regex]::Match((Get-Content ../CHANGELOG.md -Raw), $pattern)
+          if (-not $notes.Success) { throw 'Release changelog section is missing.' }
+          $notes.Groups[1].Value.Trim() | Set-Content -LiteralPath build/release-notes.md -Encoding utf8
         working-directory: ssf_flutter
 
       - name: Upload release asset
         uses: softprops/action-gh-release@v3.0.3
         with:
           tag_name: ${{ github.ref_name }}
-          files: ssf_flutter/ssf_win_*.zip
+          body_path: ssf_flutter/build/release-notes.md
+          files: |
+            ssf_flutter/ssf_win_*.zip
+            ssf_flutter/ssf_win_*.zip.sha256
           token: ${{ github.token }}

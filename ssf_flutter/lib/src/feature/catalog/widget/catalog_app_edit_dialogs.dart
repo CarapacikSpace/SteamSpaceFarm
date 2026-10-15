@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:ssf_flutter/src/feature/catalog/model/library_ownership.dart';
 import 'package:ssf_flutter/src/feature/catalog/model/local_app.dart';
 import 'package:ssf_flutter/src/localization/generated/l10n.dart';
+import 'package:ssf_flutter/src/ui_kit/controls/steam_text_field.dart';
 import 'package:ssf_flutter/src/ui_kit/steam_ui_kit.dart';
 
 class const AutoStopDraft({required final int? minutes});
@@ -77,7 +78,8 @@ class _CurrentTimeDialogState() extends State<_CurrentTimeDialog> {
                 style: const TextStyle(fontSize: 12, color: Color(0xFFB8BEC7)),
               ),
               const SizedBox(height: 8),
-              TextFormField(
+              SteamTextField(
+                form: true,
                 controller: _controller,
                 autofocus: true,
                 keyboardType: TextInputType.number,
@@ -92,10 +94,13 @@ class _CurrentTimeDialogState() extends State<_CurrentTimeDialog> {
                       ? GeneratedLocalizations.of(context).nonNegativeIntegerRequired
                       : null;
                 },
-                onFieldSubmitted: (_) => _submit(),
+                onSubmitted: (_) => _submit(),
               ),
               const SizedBox(height: 8),
-              Text(_hoursHint(minutes), style: const TextStyle(color: Color(0xFF8D9BAB))),
+              Text(
+                _hoursHint(GeneratedLocalizations.of(context), minutes),
+                style: const TextStyle(color: Color(0xFF8D9BAB)),
+              ),
               if (reachesGoal) ...[
                 const SizedBox(height: 14),
                 _Notice(
@@ -164,7 +169,8 @@ class _AutoStopDialogState() extends State<_AutoStopDialog> {
                 style: const TextStyle(fontSize: 12, color: Color(0xFFB8BEC7)),
               ),
               const SizedBox(height: 8),
-              TextFormField(
+              SteamTextField(
+                form: true,
                 controller: _controller,
                 autofocus: true,
                 keyboardType: TextInputType.number,
@@ -183,11 +189,13 @@ class _AutoStopDialogState() extends State<_AutoStopDialog> {
                       ? GeneratedLocalizations.of(context).positiveIntegerRequired
                       : null;
                 },
-                onFieldSubmitted: (_) => _submit(),
+                onSubmitted: (_) => _submit(),
               ),
               const SizedBox(height: 8),
               Text(
-                text.isEmpty ? GeneratedLocalizations.of(context).emptyTargetClearsHint : _hoursHint(minutes),
+                text.isEmpty
+                    ? GeneratedLocalizations.of(context).emptyTargetClearsHint
+                    : _hoursHint(GeneratedLocalizations.of(context), minutes),
                 style: const TextStyle(color: Color(0xFF8D9BAB)),
               ),
               if (removesGoal && text.isNotEmpty) ...[
@@ -243,7 +251,7 @@ class _OwnershipDialogState() extends State<_OwnershipDialog> {
             RadioListTile<OwnershipSelection>(
               value: option,
               contentPadding: EdgeInsets.zero,
-              title: Text(_ownershipTitle(option)),
+              title: Text(_ownershipTitle(GeneratedLocalizations.of(context), option)),
               subtitle: option == OwnershipSelection.automatic
                   ? Text(GeneratedLocalizations.of(context).ownershipFromSteamOnRefresh)
                   : null,
@@ -323,12 +331,12 @@ class const _Notice({required final IconData icon, required final String text}) 
   );
 }
 
-String _hoursHint(int? minutes) =>
-    minutes == null ? '' : GeneratedLocalizations.current.playtimeHoursApproximate((minutes / 60).toStringAsFixed(1));
+String _hoursHint(GeneratedLocalizations l10n, int? minutes) =>
+    minutes == null ? '' : l10n.playtimeHoursApproximate((minutes / 60).toStringAsFixed(1));
 
-String _ownershipTitle(OwnershipSelection option) => switch (option) {
-  OwnershipSelection.automatic => GeneratedLocalizations.current.detectAutomatically,
-  OwnershipSelection.personal => GeneratedLocalizations.current.ownershipPersonal,
+String _ownershipTitle(GeneratedLocalizations l10n, OwnershipSelection option) => switch (option) {
+  OwnershipSelection.automatic => l10n.detectAutomatically,
+  OwnershipSelection.personal => l10n.ownershipPersonal,
   OwnershipSelection.family => 'Steam Family',
-  OwnershipSelection.unknown => GeneratedLocalizations.current.ownershipNonPersonal,
+  OwnershipSelection.unknown => l10n.ownershipNonPersonal,
 };

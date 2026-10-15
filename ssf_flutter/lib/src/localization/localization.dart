@@ -8,7 +8,7 @@ abstract final class Localization() {
     GeneratedLocalizations.delegate,
   ];
 
-  static List<Locale> get supportedLocales => GeneratedLocalizations.delegate.supportedLocales;
+  static List<Locale> get supportedLocales => GeneratedLocalizations.supportedLocales;
 
   static Locale get deviceLocale => resolve(WidgetsBinding.instance.platformDispatcher.locale);
 

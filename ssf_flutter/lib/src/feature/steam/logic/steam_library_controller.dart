@@ -33,6 +33,7 @@ class SteamLibraryController({
 }) extends ChangeNotifier {
   this {
     sync.addListener(_onSync);
+    sync.processManager.addListener(_changed);
   }
 
   SteamCatalogPhase phase = SteamCatalogPhase.idle;
@@ -45,9 +46,13 @@ class SteamLibraryController({
   SteamLibrarySnapshot? _handled;
 
   bool get saving => phase == SteamCatalogPhase.saving || phase == SteamCatalogPhase.signingOut;
+  bool get gamesActive => sync.processManager.hasActiveGames;
 
   bool get credentialsEnabled =>
-      !saving && !switching && (!sync.busy || (sync.method == SteamSignInMethod.qr && !sync.authenticated));
+      !gamesActive &&
+      !saving &&
+      !switching &&
+      (!sync.busy || (sync.method == SteamSignInMethod.qr && !sync.authenticated));
 
   void _changed() {
     if (!_disposed) {
@@ -97,14 +102,14 @@ class SteamLibraryController({
   }
 
   Future<void> refresh() async {
-    if (_disposed || saving || switching || sync.busy) {
+    if (_disposed || gamesActive || saving || switching || sync.busy) {
       return;
     }
     await sync.restoreOrSignIn();
   }
 
   Future<void> refreshQr() async {
-    if (_disposed || saving || switching || sync.busy) {
+    if (_disposed || gamesActive || saving || switching || sync.busy) {
       return;
     }
     await sync.start(SteamSignInMethod.qr);
@@ -128,7 +133,7 @@ class SteamLibraryController({
   }
 
   Future<void> logout() async {
-    if (_disposed || saving || switching) {
+    if (_disposed || gamesActive || saving || switching) {
       return;
     }
     phase = SteamCatalogPhase.signingOut;
@@ -156,6 +161,7 @@ class SteamLibraryController({
   void dispose() {
     _disposed = true;
     sync.removeListener(_onSync);
+    sync.processManager.removeListener(_changed);
     sync.dispose();
     super.dispose();
   }

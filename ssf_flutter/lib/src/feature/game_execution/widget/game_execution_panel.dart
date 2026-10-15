@@ -62,7 +62,7 @@ class const GameExecutionPanel({
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      _details(controller, currentName),
+                      _details(GeneratedLocalizations.of(context), controller, currentName),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: Color(0xFFA9B6C6), fontSize: 12),
@@ -126,17 +126,17 @@ class const GameExecutionPanel({
     );
   }
 
-  static String _details(GameExecutionController controller, String? currentName) {
+  static String _details(GeneratedLocalizations l10n, GameExecutionController controller, String? currentName) {
     final parts = <String>[
-      GeneratedLocalizations.current.runningAppsCount(controller.runningCount, controller.concurrentLimit),
-      GeneratedLocalizations.current.automaticAppsCount(controller.automaticRunningCount),
-      GeneratedLocalizations.current.manualAppsCount(controller.manualRunningCount),
+      l10n.runningAppsCount(controller.runningCount, controller.concurrentLimit),
+      l10n.automaticAppsCount(controller.automaticRunningCount),
+      l10n.manualAppsCount(controller.manualRunningCount),
     ];
     if (controller.isQueueActive) {
-      parts.add(GeneratedLocalizations.current.queuedAppsCount(controller.queuedCount));
+      parts.add(l10n.queuedAppsCount(controller.queuedCount));
     }
     if (currentName != null) {
-      parts.add(GeneratedLocalizations.current.currentAppLabel(currentName));
+      parts.add(l10n.currentAppLabel(currentName));
     }
     return parts.join(' · ');
   }

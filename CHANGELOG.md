@@ -2,6 +2,20 @@
 
 All notable changes to SteamSpaceFarm are documented here.
 
+## 2.1
+
+### Added
+
+- Add experimental app launches and Invisible status through SteamKit without running the local Steam client; signing in to SteamSpaceFarm is all that is required.
+- Add a Library and sessions settings tab with automatic library refresh on startup and an option to appear invisible while games are running.
+- Add Spanish localization and migrate translations to Flutter gen-l10n.
+
+### Fixed
+
+- Fix catalog and header spacing, context-menu sizing, text-field clear buttons, narrow-window layouts, and the application icon.
+- Report interrupted game sessions and pause active queues; retry restoring Steam status after temporary failures and report unsuccessful restoration.
+- Keep appearance settings available while the library updates in the background.
+
 ## 2.0
 
 ### Added

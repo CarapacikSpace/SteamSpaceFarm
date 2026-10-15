@@ -36,7 +36,7 @@ Launch individual apps or start a queue from marked apps, favorites, or the curr
 
 Set automatic stop targets, mark a playtime range, or aim for your preferred hour milestones. Sequential mode visits visible apps one at a time, with configurable durations, delays, and ordering. Bulk actions show the affected app count before confirmation.
 
-Normal batch starts and stops are spaced apart. **Stop all** immediately terminates SSF's game runners and library helper operations. Each simulated game uses a separate `ssf_game.exe` for independent monitoring and stopping.
+Normal batch starts and stops are spaced apart. **Stop all** immediately terminates SSF's game runners and library helper operations. By default, each simulated game uses a separate `ssf_game.exe`. The experimental SteamKit option in settings uses one authenticated helper connection for all active AppIDs, with independent deadlines and stop controls. It requires a saved Steam session and does not need the local Steam client.
 
 Sessions are emulated through the Steam API. Steam determines session acceptance and recorded playtime. Manual changes to playtime and ownership apply to SSF's local catalog.
 
@@ -44,8 +44,12 @@ Sessions are emulated through the Steam API. Steam determines session acceptance
 
 - Favorites, per-app context menus, editable time targets, and quick AppID copying.
 - A fixed search and sorting bar, overlay filters, and keyboard-accessible menus.
-- English and Russian throughout the interface.
+- English, Russian, and Spanish throughout the interface.
 - Separate controls for refreshing the library, signing out, and clearing the cache.
+
+Invisible status during games is enabled by default for both launch methods. SSF restores the previous status after the last game stops, while preserving manual status changes. SteamKit works without the desktop client; if the same account is open there, its status is updated too.
+
+Refresh on startup is enabled by default and can be disabled in the Library and sessions tab. It displays the cached library immediately and updates it in the background. Settings remain available while games run; library refresh and sign-out require stopping all games first. Leaving an active library update requires confirmation.
 
 Clearing the library cache keeps your Steam session ready for the next refresh. Signing out removes the saved session and clears the library cache.
 
@@ -54,7 +58,7 @@ Clearing the library cache keeps your Steam session ready for the next refresh. 
 1. Download the Windows x64 archive from [Releases](https://github.com/CarapacikSpace/SteamSpaceFarm/releases/latest).
 2. Extract the **entire archive** into a folder and run `ssf.exe`.
 3. Open Steam integration in settings, sign in, and load your library.
-4. Keep the Steam desktop client running and signed in to the appropriate account when starting simulated game sessions.
+4. For standard sessions, keep the Steam desktop client running on the same account. Experimental SteamKit sessions only require signing in to SSF.
 
 The Windows release includes both helper executables and their runtime components. Internet access is required for Steam sign-in, library updates, and artwork. Windows x64 is the supported release target.
 
@@ -85,7 +89,7 @@ cd ssf_flutter
 flutter build windows --release
 ```
 
-The bundle is written to `ssf_flutter/build/windows/x64/runner/Release/`. Build both helpers first: Flutter's CMake configuration copies their fresh outputs from the C# projects. Localization generation runs `dart pub global run intl_utils:generate` through a global `intl_utils` installation.
+The bundle is written to `ssf_flutter/build/windows/x64/runner/Release/`. Build both helpers first: Flutter's CMake configuration copies their fresh outputs from the C# projects. Localization generation uses Flutter’s built-in `flutter gen-l10n` and `ssf_flutter/l10n.yaml`. ARB translations for English, Russian, and Spanish are in `lib/src/localization/translations/`.
 
 | Directory | Purpose |
 | --- | --- |
@@ -100,6 +104,6 @@ Flutter communicates with child processes using newline-delimited JSON over stan
 
 ## Contribute
 
-[Open an issue](https://github.com/CarapacikSpace/SteamSpaceFarm/issues) for a bug or feature request. Include the SSF version, Windows version, steps to reproduce, and the visible error text. Keep account credentials and session files private. Pull requests are welcome; user-facing text should be localized in English and Russian.
+[Open an issue](https://github.com/CarapacikSpace/SteamSpaceFarm/issues) for a bug or feature request. Include the SSF version, Windows version, steps to reproduce, and the visible error text. Keep account credentials and session files private. Pull requests are welcome; user-facing text should be localized in English, Russian, and Spanish.
 
 Join our [Discord server](https://discord.gg/Wy78VE6mdq) to discuss ideas, ask questions, and share feedback.

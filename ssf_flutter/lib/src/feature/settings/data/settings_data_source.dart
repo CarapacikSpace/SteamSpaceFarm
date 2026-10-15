@@ -44,8 +44,16 @@ final class AppSettingsColumn({required super.sharedPreferences, required super.
     final String? countryCode = await _localeCountryCode.read();
 
     final String? cardTypeName = await _cardType.read();
+    final String? refresh = await sharedPreferences.getString('$key.refresh_on_startup');
+    final String? steamKit = await sharedPreferences.getString('$key.experimental_steamkit');
+    final String? offline = await sharedPreferences.getString('$key.invisible_while_playing');
 
-    if (languageCode == null && countryCode == null && cardTypeName == null) {
+    if (languageCode == null &&
+        countryCode == null &&
+        cardTypeName == null &&
+        refresh == null &&
+        steamKit == null &&
+        offline == null) {
       return null;
     }
 
@@ -59,6 +67,9 @@ final class AppSettingsColumn({required super.sharedPreferences, required super.
     return AppSettings(
       locale: appLocale ?? Localization.deviceLocale,
       cardType: cardType ?? SteamAppCardType.libraryCapsule,
+      refreshOnStartup: refresh != 'false',
+      experimentalSteamKit: steamKit == 'true',
+      invisibleWhilePlaying: offline != 'false',
     );
   }
 
@@ -70,6 +81,9 @@ final class AppSettingsColumn({required super.sharedPreferences, required super.
     ).wait;
 
     await _cardType.set(value.cardType.name);
+    await sharedPreferences.setString('$key.refresh_on_startup', '${value.refreshOnStartup}');
+    await sharedPreferences.setString('$key.experimental_steamkit', '${value.experimentalSteamKit}');
+    await sharedPreferences.setString('$key.invisible_while_playing', '${value.invisibleWhilePlaying}');
   }
 }
 

@@ -20,7 +20,7 @@ const second = LocalApp(appId: 570, name: 'Second', type: SteamAppType.game);
 const accountId = '76561198000000001';
 
 void main() {
-  setUp(() => GeneratedLocalizations.load(const Locale('ru')));
+  setUp(() => GeneratedLocalizations.delegate.load(const Locale('ru')));
   late FakeRepository repository;
   late FakeSteam service;
   late GameLauncher launcher;
@@ -44,6 +44,100 @@ void main() {
       ..releaseStart();
     await launcher.stopAll();
     launcher.dispose();
+  });
+
+  test('a running helper failure reports the app once and saves elapsed time', () async {
+    await launcher.toggleGame(first);
+    (service.workers.single.process as FakeProcess).finish(6);
+    await tick();
+    expect(launcher.launchedGames, isEmpty);
+    expect(repository.writes, hasLength(1));
+    expect(errors, hasLength(1));
+    expect(errors.single, contains(first.name));
+    expect(errors.single, contains(first.appId.toString()));
+  });
+
+  for (final sequential in [false, true]) {
+    test('unexpected exit pauses the ${sequential ? "sequential" : "batch"} queue until resume', () async {
+      if (sequential) {
+        await launcher.startSequential(
+          [first, second],
+          runDuration: const Duration(hours: 1),
+          lowPlaytimeRunDuration: const Duration(hours: 1),
+          launchDelay: Duration.zero,
+        );
+      } else {
+        await launcher.launchBatch([first, second], mode: BatchLaunchMode.marked);
+      }
+      (service.workers.single.process as FakeProcess).finish(6);
+      await tick();
+      expect(launcher.isQueuePaused, isTrue);
+      expect(launcher.queuedCount, 1);
+      expect(service.starts, [first.appId]);
+      expect(errors, hasLength(1));
+      launcher.setQueuePaused(paused: false);
+      await tick();
+      expect(service.starts, [first.appId, second.appId]);
+    });
+  }
+
+  test('normal completion and requested forced stops do not report interruptions', () async {
+    await launcher.toggleGame(first);
+    (service.workers.single.process as FakeProcess).finish(0);
+    await tick();
+    service.stopExitCode = 9;
+    await launcher.toggleGame(second);
+    await launcher.stopGame(second.appId);
+    await launcher.toggleGame(first);
+    await launcher.stopAll();
+    await tick();
+    expect(errors, isEmpty);
+  });
+
+  test('exhausted status restoration is shown to the user', () async {
+    service.restorationFailures.add(null);
+    await tick();
+    expect(errors, hasLength(1));
+    expect(errors.single, contains('status'));
+    launcher.dispose();
+    service.restorationFailures.add(null);
+    await tick();
+    expect(errors, hasLength(1));
+  });
+
+  test('pause during a failed automatic start retains the next game until resume', () async {
+    final failing = FailingSecondSteam();
+    final queue = GameLauncher(
+      appsRepository: repository,
+      steamGame: failing,
+      onUpdateAppList: (_) {},
+      onStateChanged: () {},
+      onUserError: errors.add,
+    );
+    addTearDown(() async {
+      await queue.stopAll();
+      queue.dispose();
+    });
+    const third = LocalApp(appId: 730, name: 'Third', type: SteamAppType.game);
+    await queue.startSequential(
+      [first, second, third],
+      runDuration: const Duration(hours: 1),
+      lowPlaytimeRunDuration: const Duration(hours: 1),
+      launchDelay: Duration.zero,
+    );
+    await queue.stopGame(first.appId);
+    await failing.entered.future;
+    queue.setQueuePaused(paused: true);
+    failing.releaseFailure.complete();
+    await tick();
+    expect(queue.isQueuePaused, isTrue);
+    expect(queue.isSequentialActive, isTrue);
+    expect(queue.queuedCount, 1);
+    expect(failing.starts, [480, 570]);
+    queue.setQueuePaused(paused: false);
+    await tick();
+    expect(failing.starts, [480, 570, 730]);
+    expect(queue.launchedGames.single.app.appId, 730);
   });
 
   test('pending ready reserves capacity before another launch', () async {
@@ -132,12 +226,19 @@ class FakeRepository() implements IAppsRepository {
 }
 
 class FakeSteam() extends SteamGameService {
-  this : super(processManager: SteamProcessManager());
+  this : super(processManager: SteamProcessManager()) {
+    addTearDown(_closeRestorationFailures);
+  }
 
   @override
   bool get hasProcesses => workers.any((worker) => !worker.connection.exited);
   Completer<void>? startGate;
   bool failStop = false;
+  int stopExitCode = 0;
+  final restorationFailures = StreamController<void>.broadcast();
+  Future<void> _closeRestorationFailures() => restorationFailures.close();
+  @override
+  Stream<void> get presenceRestorationFailures => restorationFailures.stream;
   final starts = <int>[];
   final workers = <SteamGameProcess>[];
 
@@ -174,7 +275,7 @@ class FakeSteam() extends SteamGameService {
     if (failStop) {
       throw StateError('synthetic stop failure');
     }
-    (process.process as FakeProcess).finish(0);
+    (process.process as FakeProcess).finish(stopExitCode);
     await process.connection.exitCode;
   }
 
@@ -183,5 +284,20 @@ class FakeSteam() extends SteamGameService {
     for (final SteamGameProcess worker in workers) {
       await killProcessById(worker);
     }
+  }
+}
+
+class FailingSecondSteam() extends FakeSteam {
+  final entered = Completer<void>();
+  final releaseFailure = Completer<void>();
+  @override
+  Future<SteamGameProcess> launchApp(LocalApp app, {required String expectedSteamId, Duration? maximumRunTime}) async {
+    if (app.appId == second.appId) {
+      starts.add(app.appId);
+      entered.complete();
+      await releaseFailure.future;
+      throw StateError('synthetic startup failure');
+    }
+    return await super.launchApp(app, expectedSteamId: expectedSteamId, maximumRunTime: maximumRunTime);
   }
 }

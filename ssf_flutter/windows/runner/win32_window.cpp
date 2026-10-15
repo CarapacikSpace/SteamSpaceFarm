@@ -197,6 +197,14 @@ Win32Window::MessageHandler(HWND hwnd,
 
       return 0;
     }
+    case WM_GETMINMAXINFO: {
+      const UINT dpi = GetDpiForWindow(hwnd);
+      RECT minimum = {0, 0, MulDiv(400, dpi ? dpi : 96, 96), 0};
+      AdjustWindowRectExForDpi(&minimum, GetWindowLong(hwnd, GWL_STYLE), FALSE,
+                              GetWindowLong(hwnd, GWL_EXSTYLE), dpi ? dpi : 96);
+      reinterpret_cast<MINMAXINFO*>(lparam)->ptMinTrackSize.x = minimum.right - minimum.left;
+      return 0;
+    }
     case WM_SIZE: {
       RECT rect = GetClientArea();
       if (child_content_ != nullptr) {

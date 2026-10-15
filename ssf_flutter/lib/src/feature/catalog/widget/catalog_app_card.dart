@@ -19,10 +19,16 @@ class const CatalogAppCard({
   Widget build(BuildContext context) {
     final String? playtime = app.playtimeMinutes == null
         ? null
-        : _formatPlaytime(app.playtimeMinutes, useHours && app.playtimeMinutes! >= 120);
-    final String? markedTime = app.stopAtMinutes == null ? null : _formatPlaytime(app.stopAtMinutes, useHours);
+        : _formatPlaytime(
+            GeneratedLocalizations.of(context),
+            app.playtimeMinutes,
+            useHours && app.playtimeMinutes! >= 120,
+          );
+    final String? markedTime = app.stopAtMinutes == null
+        ? null
+        : _formatPlaytime(GeneratedLocalizations.of(context), app.stopAtMinutes, useHours);
     final Widget marker = SteamOwnershipMarker(
-      label: _ownershipLabel(app.libraryOwnership),
+      label: _ownershipLabel(GeneratedLocalizations.of(context), app.libraryOwnership),
       ownership: _ownershipVisual(app.libraryOwnership),
       favorite: app.isFavorite,
       markedTime: cardType == SteamAppCardType.appIcon ? null : markedTime,
@@ -42,7 +48,7 @@ class const CatalogAppCard({
         artwork: _SteamArtwork(imageUrls: app.mainCapsuleImageUrls, name: app.name),
         imageAspectRatio: 616 / 353,
         title: app.name,
-        typeLabel: appTypeLabel(app.type),
+        typeLabel: appTypeLabel(GeneratedLocalizations.of(context), app.type),
         playtimeLabel: playtime,
         marker: marker,
         onActivate: onTap,
@@ -52,7 +58,7 @@ class const CatalogAppCard({
       SteamAppCardType.storeHeader => SteamStoreHeaderCard(
         artwork: _SteamArtwork(imageUrls: app.storeHeaderImageUrls, name: app.name),
         title: app.name,
-        typeLabel: appTypeLabel(app.type),
+        typeLabel: appTypeLabel(GeneratedLocalizations.of(context), app.type),
         playtimeLabel: playtime,
         marker: marker,
         onActivate: onTap,
@@ -107,7 +113,10 @@ class const _CardDetails({required final LocalApp app}) extends StatelessWidget 
         style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700),
       ),
       const SizedBox(height: 4),
-      Text(appTypeLabel(app.type), style: const TextStyle(color: Colors.white70, fontSize: 12)),
+      Text(
+        appTypeLabel(GeneratedLocalizations.of(context), app.type),
+        style: const TextStyle(color: Colors.white70, fontSize: 12),
+      ),
     ],
   );
 }
@@ -126,8 +135,9 @@ class const _IconDetails({required final LocalApp app, required final bool isRun
       ),
       Text(
         isRunning
-            ? GeneratedLocalizations.of(context).appTypeRunningLabel(appTypeLabel(app.type))
-            : appTypeLabel(app.type),
+            ? GeneratedLocalizations.of(context)
+                  .appTypeRunningLabel(appTypeLabel(GeneratedLocalizations.of(context), app.type))
+            : appTypeLabel(GeneratedLocalizations.of(context), app.type),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
@@ -146,19 +156,17 @@ SteamOwnershipVisual _ownershipVisual(LibraryOwnership ownership) => switch (own
   LibraryOwnership.unknown => SteamOwnershipVisual.unknown,
 };
 
-String _ownershipLabel(LibraryOwnership ownership) => switch (ownership) {
-  LibraryOwnership.personal => GeneratedLocalizations.current.ownershipPersonal,
+String _ownershipLabel(GeneratedLocalizations l10n, LibraryOwnership ownership) => switch (ownership) {
+  LibraryOwnership.personal => l10n.ownershipPersonal,
   LibraryOwnership.family => 'Family',
-  LibraryOwnership.unknown => GeneratedLocalizations.current.ownershipUnknown,
+  LibraryOwnership.unknown => l10n.ownershipUnknown,
 };
 
-String _formatPlaytime(int? minutes, bool useHours) {
+String _formatPlaytime(GeneratedLocalizations l10n, int? minutes, bool useHours) {
   if (minutes == null) {
     return '—';
   }
-  return useHours
-      ? GeneratedLocalizations.current.playtimeHours((minutes / 60).toStringAsFixed(1))
-      : GeneratedLocalizations.current.playtimeMinutes(minutes);
+  return useHours ? l10n.playtimeHours((minutes / 60).toStringAsFixed(1)) : l10n.playtimeMinutes(minutes);
 }
 
 String _firstLetter(String value) {

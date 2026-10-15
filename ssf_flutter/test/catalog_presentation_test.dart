@@ -17,20 +17,24 @@ import 'package:ssf_flutter/src/localization/localization.dart';
 import 'package:ssf_flutter/src/ui_kit/catalog/steam_playtime_badge.dart';
 import 'package:ssf_flutter/src/ui_kit/steam_theme.dart';
 
-Widget app(Widget home) => MaterialApp(
-  theme: buildSteamTheme(),
-  locale: const Locale('ru'),
-  localizationsDelegates: Localization.localizationDelegates,
-  supportedLocales: Localization.supportedLocales,
-  home: SettingsScope(
-    repository: FakeSettings(),
-    initialSettings: const AppSettings(locale: Locale('ru'), cardType: SteamAppCardType.libraryCapsule),
-    child: home,
+Widget app(Widget home) => SettingsScope(
+  repository: FakeSettings(),
+  initialSettings: const AppSettings(
+    locale: Locale('ru'),
+    cardType: SteamAppCardType.libraryCapsule,
+    refreshOnStartup: false,
+  ),
+  child: MaterialApp(
+    theme: buildSteamTheme(),
+    locale: const Locale('ru'),
+    localizationsDelegates: Localization.localizationDelegates,
+    supportedLocales: Localization.supportedLocales,
+    home: home,
   ),
 );
 
 void main() {
-  setUp(() => GeneratedLocalizations.load(const Locale('ru')));
+  setUp(() => GeneratedLocalizations.delegate.load(const Locale('ru')));
   for (final double width in [500, 1000, 1400]) {
     testWidgets('filters overlay the catalog without moving it at width $width', (tester) async {
       tester.view.physicalSize = Size(width, 900);
@@ -186,6 +190,9 @@ class FakeCatalog() implements IAppsRepository {
 }
 
 class FakeSettings() implements IAppSettingsRepository {
+  @override
+  Future<void> setAppSettings(AppSettings settings) async {}
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -2,13 +2,25 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+abstract interface class GameConnection() {
+  Process get process;
+  int get pid;
+  String get runId;
+  Stopwatch get elapsed;
+  bool get exited;
+  Future<int> get exitCode;
+  Future<void> waitUntilReady({Duration timeout});
+  Future<void> updateDeadline(Duration? remaining);
+  Future<void> stop({bool force = false});
+}
+
 final class GameRunnerConnection({
-  required final Process process,
+  @override required final Process process,
   required final int appId,
   required final String expectedSteamId,
-  required final String runId,
+  @override required final String runId,
   final void Function(String message)? onDiagnostic,
-}) {
+}) implements GameConnection {
   this {
     _output = _lines(process.stdout).listen(
       _onEvent,
@@ -36,16 +48,23 @@ final class GameRunnerConnection({
     unawaited(_ready.future.then<void>((_) {}, onError: (Object error, StackTrace stack) {}));
   }
 
+  @override
   final Stopwatch elapsed = Stopwatch();
+  @override
+  int get pid => process.pid;
   final Completer<void> _ready = Completer<void>();
   late final StreamSubscription<String> _output;
   late final StreamSubscription<List<int>> _errors;
+  @override
   late final Future<int> exitCode;
   Future<void>? _stopping;
+  @override
   bool exited = false;
 
+  @override
   Future<void> waitUntilReady({Duration timeout = const Duration(seconds: 15)}) => _ready.future.timeout(timeout);
 
+  @override
   Future<void> updateDeadline(Duration? remaining) async {
     if (exited) {
       return;
@@ -60,6 +79,7 @@ final class GameRunnerConnection({
     });
   }
 
+  @override
   Future<void> stop({bool force = false}) {
     if (exited) {
       return Future<void>.value();

@@ -12,6 +12,7 @@ import 'package:ssf_flutter/src/feature/game_execution/data/steam_game.dart';
 import 'package:ssf_flutter/src/feature/game_execution/model/bulk_actions.dart';
 import 'package:ssf_flutter/src/feature/game_execution/model/steam_game_process.dart';
 import 'package:ssf_flutter/src/localization/generated/l10n.dart';
+import 'package:ssf_flutter/src/localization/generated/l10n_en.dart';
 import 'package:ssf_flutter/src/logging/app_logger.dart';
 import 'package:ssf_flutter/src/utils/optional.dart';
 
@@ -30,11 +31,18 @@ class GameLauncher({
   required final ValueChanged<LocalApp> onUpdateAppList,
   required final VoidCallback onStateChanged,
   required final ValueChanged<String> onUserError,
+  final GeneratedLocalizations Function()? localizations,
   final LocalApp? Function(int appId)? latestAppById,
   var int _maxRunningGames = defaultConcurrentGames,
 }) {
   this {
+    _presenceFailures = steamGame.presenceRestorationFailures.listen((_) {
+      if (!_disposed) {
+        onUserError(_l10n.steamPresenceRestoreFailed);
+      }
+    });
     _registration = steamGame.processManager.register(
+      game: true,
       isActive: () =>
           occupiedSlots > 0 ||
           _appOperations.isNotEmpty ||
@@ -51,8 +59,11 @@ class GameLauncher({
     );
   }
 
+  GeneratedLocalizations get _l10n => localizations?.call() ?? GeneratedLocalizationsEn();
+
   final launchedGames = <SteamGameProcess>[];
   late final SteamProcessRegistration _registration;
+  late final StreamSubscription<void> _presenceFailures;
   final batchLaunchedAppIds = <int>{};
   final batchQueue = Queue<LocalApp>();
   final gameStartTimes = <int, DateTime>{};
@@ -141,7 +152,10 @@ class GameLauncher({
   Future<void> toggleGame(LocalApp app) {
     final int generation = _launchGeneration;
     return _runSerialized(app.appId, () async {
-      if (generation != _launchGeneration || _stoppingAll || _disposed || !steamGame.processManager.acceptingStarts) {
+      if (generation != _launchGeneration ||
+          _stoppingAll ||
+          _disposed ||
+          !steamGame.processManager.acceptingGameStarts) {
         return;
       }
       await _toggleGame(app);
@@ -164,7 +178,7 @@ class GameLauncher({
         _batchMode != null ||
         _stoppingAll ||
         _disposed ||
-        !steamGame.processManager.acceptingStarts) {
+        !steamGame.processManager.acceptingGameStarts) {
       return;
     }
     _batchMode = mode;
@@ -209,11 +223,11 @@ class GameLauncher({
     if (launchDelay < Duration.zero) {
       throw ArgumentError.value(launchDelay, 'launchDelay', 'Must not be negative.');
     }
-    if (_sequentialActive || _disposed || !steamGame.processManager.acceptingStarts) {
+    if (_sequentialActive || _disposed || !steamGame.processManager.acceptingGameStarts) {
       return;
     }
     if (occupiedSlots > 0 || _batchMode != null || _stoppingAll) {
-      onUserError(GeneratedLocalizations.current.sequentialQueueRequiresStoppedGames);
+      onUserError(_l10n.sequentialQueueRequiresStoppedGames);
       return;
     }
 
@@ -258,6 +272,7 @@ class GameLauncher({
 
   void dispose() {
     _disposed = true;
+    unawaited(_presenceFailures.cancel());
     unawaited(
       stopAll()
           .catchError((Object error, StackTrace stack) {
@@ -289,7 +304,7 @@ class GameLauncher({
       await Future.wait(_appOperations.values.toList());
 
       for (final SteamGameProcess process in launchedGames.toList()) {
-        await _runSerialized(process.app.appId, () => _handleProcessExit(process));
+        await _runSerialized(process.app.appId, () => _handleProcessExit(process, 0));
       }
     } finally {
       _stoppingAll = false;
@@ -319,7 +334,7 @@ class GameLauncher({
     }
     if (_disposed ||
         _stoppingAll ||
-        !steamGame.processManager.acceptingStarts ||
+        !steamGame.processManager.acceptingGameStarts ||
         _cancelledStarts.contains(appId) ||
         occupiedSlots >= maxRunningGames) {
       batchLaunchedAppIds.remove(appId);
@@ -352,7 +367,9 @@ class GameLauncher({
       gameStartTimes[appId] = DateTime.now();
       onUpdateAppList.call(app);
       _notifyStateChanged();
-      unawaited(launched.connection.exitCode.then((_) => _runSerialized(appId, () => _handleProcessExit(launched))));
+      unawaited(
+        launched.connection.exitCode.then((code) => _runSerialized(appId, () => _handleProcessExit(launched, code))),
+      );
 
       gameTimers[appId] = Timer.periodic(const Duration(seconds: 10), (_) {
         unawaited(_runSerialized(appId, () => _checkTarget(launched)));
@@ -361,11 +378,12 @@ class GameLauncher({
       batchLaunchedAppIds.remove(appId);
       if (!_disposed && !_cancelledStarts.contains(appId) && generation == _launchGeneration) {
         final String detail = switch (error) {
-          GameRunnerException(code: 'job_setup_failed') => GeneratedLocalizations.current.runnerCleanupFailed,
+          GameRunnerException(code: 'steamkit_session_failed') => _l10n.runnerSteamKitFailed,
+          GameRunnerException(code: 'steam_presence_failed') => _l10n.runnerSteamPresenceFailed,
+          GameRunnerException(code: 'job_setup_failed') => _l10n.runnerCleanupFailed,
           GameRunnerException(code: 'account_mismatch' || 'identity_mismatch' || 'catalog_account_mismatch') =>
-            GeneratedLocalizations.current.runnerAccountMismatch,
-          GameRunnerException(code: 'account_required' || 'invalid_identity') =>
-            GeneratedLocalizations.current.runnerLibraryRequired,
+            _l10n.runnerAccountMismatch,
+          GameRunnerException(code: 'account_required' || 'invalid_identity') => _l10n.runnerLibraryRequired,
           GameRunnerException(
             code: 'runner_not_found' ||
                 'dll_missing' ||
@@ -374,10 +392,10 @@ class GameLauncher({
                 'incompatible_protocol' ||
                 'exited_before_ready',
           ) =>
-            GeneratedLocalizations.current.runnerUpdateRequired,
-          _ => GeneratedLocalizations.current.runnerLaunchUnconfirmed,
+            _l10n.runnerUpdateRequired,
+          _ => _l10n.runnerLaunchUnconfirmed,
         };
-        onUserError(GeneratedLocalizations.current.gameLaunchFailed(app.name, appId, detail));
+        onUserError(_l10n.gameLaunchFailed(app.name, appId, detail));
       }
     } finally {
       _startingAppIds.remove(appId);
@@ -405,7 +423,7 @@ class GameLauncher({
         await steamGame.updateDeadline(current, target == null ? null : Duration(minutes: target - total));
         _runnerTargets[latestApp.appId] = target;
       } on Object {
-        onUserError(GeneratedLocalizations.current.gameDeadlineUpdateFailed(latestApp.name));
+        onUserError(_l10n.gameDeadlineUpdateFailed(latestApp.name));
       }
     }
     if (latestApp.stopAtMinutes == null) {
@@ -436,10 +454,14 @@ class GameLauncher({
     return Duration(minutes: max(1, remainingMinutes));
   }
 
-  Future<void> _handleProcessExit(SteamGameProcess process) async {
+  Future<void> _handleProcessExit(SteamGameProcess process, int exitCode) async {
     final SteamGameProcess? current = launchedGames.firstWhereOrNull((candidate) => candidate.pid == process.pid);
     if (current == null) {
       return;
+    }
+    if (exitCode != 0 && !_disposed && !_stoppingAll) {
+      setQueuePaused(paused: true);
+      onUserError(_l10n.gameSessionInterrupted(current.app.name, current.app.appId));
     }
     await _stopRunningGame(
       current,
@@ -463,7 +485,7 @@ class GameLauncher({
       try {
         await steamGame.killProcessById(process);
       } on Object {
-        onUserError(GeneratedLocalizations.current.gameStopFailed(latestApp.name, appId));
+        onUserError(_l10n.gameStopFailed(latestApp.name, appId));
         return;
       }
     }
@@ -495,7 +517,7 @@ class GameLauncher({
         }
       } on Object {
         if (!_disposed) {
-          onUserError(GeneratedLocalizations.current.gamePlaytimeSaveFailed(latestApp.name, appId));
+          onUserError(_l10n.gamePlaytimeSaveFailed(latestApp.name, appId));
         }
       }
     }
@@ -552,7 +574,7 @@ class GameLauncher({
       return;
     }
 
-    while (!_disposed && _sequentialActive && !_stoppingAll && sequentialQueue.isNotEmpty) {
+    while (!_disposed && _sequentialActive && !_stoppingAll && !_sequentialPaused && sequentialQueue.isNotEmpty) {
       final LocalApp next = sequentialQueue.removeFirst();
       _sequentialAppId = next.appId;
       final int generation = _launchGeneration;
@@ -587,6 +609,9 @@ class GameLauncher({
       return;
     }
 
+    if (_sequentialPaused) {
+      return;
+    }
     _sequentialActive = false;
     _sequentialPaused = false;
     _notifyStateChanged();
@@ -632,6 +657,7 @@ class GameLauncher({
   }
 
   void _notifyStateChanged() {
+    steamGame.processManager.updateActivity();
     if (!_disposed) {
       onStateChanged.call();
     }
@@ -648,6 +674,7 @@ class GameLauncher({
         .whenComplete(() {
           if (identical(_appOperations[appId], current)) {
             unawaited(_appOperations.remove(appId));
+            _notifyStateChanged();
           }
         });
     _appOperations[appId] = current;

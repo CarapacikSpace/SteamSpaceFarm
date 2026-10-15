@@ -60,8 +60,9 @@ class const AppearanceSettingsTab({
                     items: Localization.supportedLocales,
                     value: settings.locale,
                     labelBuilder: (locale) => switch (locale.languageCode) {
-                      'ru' => context.l10n.languageRussian,
-                      'en' => context.l10n.languageEnglish,
+                      'ru' => 'Русский',
+                      'en' => 'English',
+                      'es' => 'Español',
                       _ => locale.languageCode,
                     },
                     onChanged: isSaving

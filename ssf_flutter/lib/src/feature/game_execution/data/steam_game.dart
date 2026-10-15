@@ -6,6 +6,8 @@ import 'package:ssf_flutter/src/feature/app/logic/steam_process_manager.dart';
 import 'package:ssf_flutter/src/feature/catalog/model/local_app.dart';
 import 'package:ssf_flutter/src/feature/game_execution/data/game_runner_connection.dart';
 import 'package:ssf_flutter/src/feature/game_execution/data/runner_process.dart';
+import 'package:ssf_flutter/src/feature/game_execution/data/steam_presence.dart';
+import 'package:ssf_flutter/src/feature/game_execution/data/steamkit_session.dart';
 import 'package:ssf_flutter/src/feature/game_execution/data/windows_runner_job.dart';
 import 'package:ssf_flutter/src/feature/game_execution/logic/process_action_queue.dart';
 import 'package:ssf_flutter/src/feature/game_execution/model/steam_game_process.dart';
@@ -13,19 +15,25 @@ import 'package:ssf_flutter/src/logging/app_logger.dart';
 import 'package:ssf_flutter/src/storage/app_paths.dart';
 
 class SteamGameService({required final SteamProcessManager processManager}) {
+  bool experimentalSteamKit = false;
+  bool invisibleWhilePlaying = false;
+  final _presence = GamePresenceController();
+  final _presenceFailures = StreamController<void>.broadcast();
+  Stream<void> get presenceRestorationFailures => _presenceFailures.stream;
+  SteamKitSession? _steamKitSession;
   final _launchActions = ProcessActionQueue();
   final _stopActions = ProcessActionQueue();
   final _launches = <Future<void>>{};
   Future<void>? _stopping;
 
-  bool get hasProcesses => _owned.isNotEmpty || _launches.isNotEmpty;
+  bool get hasProcesses => _owned.isNotEmpty || _launches.isNotEmpty || _presence.isActive;
 
   final _owned = <String, SteamGameProcess>{};
   final _random = Random.secure();
   int _generation = 0;
 
   Future<SteamGameProcess> launchApp(LocalApp app, {required String expectedSteamId, Duration? maximumRunTime}) async {
-    if (!processManager.acceptingStarts || _stopping != null) {
+    if (!processManager.acceptingGameStarts || _stopping != null) {
       throw const GameRunnerException('launch_cancelled');
     }
     final int generation = _generation;
@@ -33,11 +41,11 @@ class SteamGameService({required final SteamProcessManager processManager}) {
     late final Future<void> operation;
     operation = _launchActions
         .run(() async {
-          if (generation != _generation || !processManager.acceptingStarts) {
+          if (generation != _generation || !processManager.acceptingGameStarts) {
             throw const GameRunnerException('launch_cancelled');
           }
           launched = await _launchApp(app, expectedSteamId: expectedSteamId, maximumRunTime: maximumRunTime);
-        }, shouldRun: () => generation == _generation && processManager.acceptingStarts)
+        }, shouldRun: () => generation == _generation && processManager.acceptingGameStarts)
         .whenComplete(() => _launches.remove(operation));
     _launches.add(operation);
     await operation;
@@ -51,7 +59,68 @@ class SteamGameService({required final SteamProcessManager processManager}) {
     if (app.appId <= 0 || int.tryParse(expectedSteamId) == null || int.parse(expectedSteamId) <= 0) {
       throw const GameRunnerException('invalid_identity');
     }
+    final Future<void> Function()? release = invisibleWhilePlaying
+        ? await _presence.acquire(expectedSteamId, localClientRequired: !experimentalSteamKit)
+        : null;
+    try {
+      if (!processManager.acceptingGameStarts || _stopping != null) {
+        throw const GameRunnerException('launch_cancelled');
+      }
+      final SteamGameProcess game = await _startApp(
+        app,
+        expectedSteamId: expectedSteamId,
+        maximumRunTime: maximumRunTime,
+      );
+      if (release != null) {
+        unawaited(
+          game.connection.exitCode
+              .then((_) => release())
+              .catchError((Object error) {
+                AppLogger.info('Steam status restoration failed: $error', name: 'SteamGame');
+                _presenceFailures.add(null);
+              })
+              .whenComplete(processManager.updateActivity),
+        );
+      }
+      return game;
+    } on Object {
+      try {
+        await release?.call();
+      } on Object catch (error) {
+        AppLogger.info('Steam status restoration failed: $error', name: 'SteamGame');
+        _presenceFailures.add(null);
+      }
+      rethrow;
+    }
+  }
+
+  Future<SteamGameProcess> _startApp(LocalApp app, {required String expectedSteamId, Duration? maximumRunTime}) async {
     final int generation = _generation;
+    if (experimentalSteamKit) {
+      SteamKitSession? session = _steamKitSession;
+      if (session == null || session.closed) {
+        if (session != null) {
+          await session.shutdown();
+        }
+        if (generation != _generation) {
+          throw const GameRunnerException('launch_cancelled');
+        }
+        session = _steamKitSession = SteamKitSession(steamId: expectedSteamId, invisible: invisibleWhilePlaying);
+      }
+      if (session.steamId != expectedSteamId) {
+        throw const GameRunnerException('account_mismatch');
+      }
+      final runId = 'kit-${List.generate(16, (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0')).join()}';
+      final SteamKitGameConnection connection = await session.launch(app.appId, runId, maximumRunTime);
+      final launched = SteamGameProcess(app: app, connection: connection);
+      _owned[runId] = launched;
+      unawaited(connection.exitCode.then((_) => _owned.remove(runId)));
+      if (generation != _generation || connection.exited) {
+        await connection.stop(force: true);
+        throw const GameRunnerException('launch_cancelled');
+      }
+      return launched;
+    }
     final File file = AppPaths.executable('ssf_game');
 
     if (!await file.exists()) {
@@ -134,9 +203,11 @@ class SteamGameService({required final SteamProcessManager processManager}) {
     _launchActions.cancelPending();
     _stopActions.cancelPending();
     await Future.wait([
+      if (_steamKitSession != null) _steamKitSession!.shutdown(),
       ..._owned.values.toList().map((process) => process.connection.stop(force: true)),
       ..._launches.toList().map((launch) => launch.catchError((Object _) {})),
     ]);
+    await _presence.settled;
     if (hasProcesses) {
       throw const GameRunnerException('stop_not_confirmed');
     }

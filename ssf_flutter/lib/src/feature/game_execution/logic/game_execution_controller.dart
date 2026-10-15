@@ -7,13 +7,17 @@ import 'package:ssf_flutter/src/feature/game_execution/logic/game_launcher.dart'
 import 'package:ssf_flutter/src/feature/game_execution/model/bulk_actions.dart';
 import 'package:ssf_flutter/src/feature/game_execution/model/steam_game_process.dart';
 import 'package:ssf_flutter/src/localization/generated/l10n.dart';
+import 'package:ssf_flutter/src/localization/generated/l10n_en.dart';
 
 class GameExecutionController({
   required final IAppsRepository appsRepository,
   required final SteamGameService steamGameService,
   required final CatalogController catalogController,
   required final ValueChanged<String> onUserError,
+  final GeneratedLocalizations Function()? localizations,
 }) extends ChangeNotifier {
+  GeneratedLocalizations get _l10n => localizations?.call() ?? GeneratedLocalizationsEn();
+
   late final GameLauncher _launcher = GameLauncher(
     appsRepository: appsRepository,
     steamGame: steamGameService,
@@ -21,6 +25,7 @@ class GameExecutionController({
     onStateChanged: _notifyIfMounted,
     latestAppById: catalogController.appById,
     onUserError: onUserError,
+    localizations: localizations,
   );
   final Set<int> _appOperations = <int>{};
   bool _groupOperationActive = false;
@@ -52,7 +57,7 @@ class GameExecutionController({
   bool get isQueuePaused => _launcher.isQueuePaused;
 
   bool get isBusy =>
-      _groupOperationActive || _appOperations.isNotEmpty || !steamGameService.processManager.acceptingStarts;
+      _groupOperationActive || _appOperations.isNotEmpty || !steamGameService.processManager.acceptingGameStarts;
 
   int get queuedCount => _launcher.queuedCount;
 
@@ -90,10 +95,10 @@ class GameExecutionController({
     try {
       if (!isRunning(app.appId)) {
         if (isSequentialActive) {
-          return GeneratedLocalizations.current.sequentialQueueBlocksManualLaunch;
+          return _l10n.sequentialQueueBlocksManualLaunch;
         }
         if (_launcher.occupiedSlots >= concurrentLimit) {
-          return GeneratedLocalizations.current.concurrentLimitReached(concurrentLimit);
+          return _l10n.concurrentLimitReached(concurrentLimit);
         }
       }
       await _launcher.toggleGame(app);
@@ -106,13 +111,13 @@ class GameExecutionController({
 
   Future<String?> startBulk(BulkLaunchRequest request, List<LocalApp> candidates) async {
     if (_groupOperationActive || isQueueActive) {
-      return GeneratedLocalizations.current.activeQueueMustStop;
+      return _l10n.activeQueueMustStop;
     }
     if (candidates.isEmpty) {
-      return GeneratedLocalizations.current.selectionHasNoEligibleApps;
+      return _l10n.selectionHasNoEligibleApps;
     }
     if (request.mode == BulkLaunchMode.allSequential && runningCount > 0) {
-      return GeneratedLocalizations.current.sequentialQueueRequiresStoppedGames;
+      return _l10n.sequentialQueueRequiresStoppedGames;
     }
     _groupOperationActive = true;
     _notifyIfMounted();

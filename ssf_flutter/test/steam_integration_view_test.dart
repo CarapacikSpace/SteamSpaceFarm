@@ -24,12 +24,12 @@ Locale testLocale = const Locale('ru');
 void main() {
   setUp(() {
     testLocale = const Locale('ru');
-    return GeneratedLocalizations.load(testLocale);
+    return GeneratedLocalizations.delegate.load(testLocale);
   });
-  for (final language in ['ru', 'en']) {
+  for (final language in ['ru', 'en', 'es']) {
     testWidgets('opening a saved session checks status and waits for explicit refresh ($language)', (tester) async {
       testLocale = Locale(language);
-      await GeneratedLocalizations.load(testLocale);
+      await GeneratedLocalizations.delegate.load(testLocale);
       final client = FakeSteamHelperClient();
       final auth = SteamLibrarySyncController(
         processManager: SteamProcessManager(),
@@ -47,10 +47,10 @@ void main() {
       );
       await tester.pump();
       expect(client.starts, 0);
-      expect(find.text(GeneratedLocalizations.current.steamSessionActive), findsOneWidget);
+      expect(find.text(lookupGeneratedLocalizations(testLocale).steamSessionActive), findsOneWidget);
       expect(find.byType(TextField), findsNothing);
       expect(find.byType(LinearProgressIndicator), findsNothing);
-      await tester.tap(find.text(GeneratedLocalizations.current.refreshLibrary));
+      await tester.tap(find.text(lookupGeneratedLocalizations(testLocale).refreshLibrary));
       await tester.pump();
       expect(client.starts, 1);
       expect(client.method, SteamSignInMethod.session);
@@ -60,7 +60,7 @@ void main() {
 
     testWidgets('explicit refresh on entry still starts a saved session ($language)', (tester) async {
       testLocale = Locale(language);
-      await GeneratedLocalizations.load(testLocale);
+      await GeneratedLocalizations.delegate.load(testLocale);
       final client = FakeSteamHelperClient();
       final auth = SteamLibrarySyncController(
         processManager: SteamProcessManager(),
@@ -84,7 +84,7 @@ void main() {
 
     testWidgets('expired QR blurs the square and refreshes from its center ($language)', (tester) async {
       testLocale = Locale(language);
-      await GeneratedLocalizations.load(testLocale);
+      await GeneratedLocalizations.delegate.load(testLocale);
       final auth = FakeAuth();
       await tester.pumpWidget(
         MaterialApp(
@@ -108,7 +108,7 @@ void main() {
       expect(find.descendant(of: panel, matching: find.byType(ImageFiltered)), findsOneWidget);
       expect(tester.getSize(panel), originalSize);
       expect(tester.getCenter(refresh), tester.getCenter(panel));
-      expect(find.byTooltip(GeneratedLocalizations.current.refreshQrCode), findsOneWidget);
+      expect(find.byTooltip(lookupGeneratedLocalizations(testLocale).refreshQrCode), findsOneWidget);
       expect(find.text(language == 'ru' ? 'Получить QR-код' : 'Get QR code'), findsNothing);
       await tester.tap(refresh);
       await tester.pump();
@@ -121,7 +121,7 @@ void main() {
 
     testWidgets('QR preparation and waiting for a scan do not show loading ($language)', (tester) async {
       testLocale = Locale(language);
-      await GeneratedLocalizations.load(testLocale);
+      await GeneratedLocalizations.delegate.load(testLocale);
       final auth = FakeAuth()..prepare(SteamSignInMethod.qr);
       await tester.pumpWidget(
         MaterialApp(
@@ -149,8 +149,15 @@ void main() {
       expect(find.byType(SteamQrCode), findsOneWidget);
       expect(find.byType(LinearProgressIndicator), findsNothing);
       expect(find.byType(CircularProgressIndicator), findsNothing);
-      expect(find.text(GeneratedLocalizations.current.steamMobileConfirmationPrompt), findsNothing);
-      expect(tester.widget<TextField>(find.byKey(const ValueKey('steam-login'))).enabled, isTrue);
+      expect(find.text(lookupGeneratedLocalizations(testLocale).steamMobileConfirmationPrompt), findsNothing);
+      expect(
+        tester
+            .widget<TextField>(
+              find.descendant(of: find.byKey(const ValueKey('steam-login')), matching: find.byType(TextField)),
+            )
+            .enabled,
+        isTrue,
+      );
 
       auth.handleHelperEvent({
         'v': 1,
@@ -159,14 +166,14 @@ void main() {
       });
       await tester.pump();
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
-      expect(find.text(GeneratedLocalizations.current.steamLibraryLoading), findsOneWidget);
+      expect(find.text(lookupGeneratedLocalizations(testLocale).steamLibraryLoading), findsOneWidget);
       expect(find.byType(SteamQrCode), findsNothing);
     });
 
     for (final kind in ['email_code', 'device_code', 'totp_code']) {
       testWidgets('Steam Guard $kind waits for input and supports a new request ($language)', (tester) async {
         testLocale = Locale(language);
-        await GeneratedLocalizations.load(testLocale);
+        await GeneratedLocalizations.delegate.load(testLocale);
         final auth = FakeAuth()..prepare(SteamSignInMethod.credentials);
         await tester.pumpWidget(
           MaterialApp(
@@ -185,7 +192,7 @@ void main() {
         });
         await tester.pump();
         expect(find.byType(LinearProgressIndicator), findsNothing);
-        expect(find.text(GeneratedLocalizations.current.steamMobileConfirmationPrompt), findsOneWidget);
+        expect(find.text(lookupGeneratedLocalizations(testLocale).steamMobileConfirmationPrompt), findsOneWidget);
         for (final requestId in ['first', 'retry']) {
           auth
             ..handleHelperEvent({
@@ -204,20 +211,20 @@ void main() {
           expect(
             find.text(
               kind == 'email_code'
-                  ? GeneratedLocalizations.current.steamGuardEmailPrompt
-                  : GeneratedLocalizations.current.steamGuardAppPrompt,
+                  ? lookupGeneratedLocalizations(testLocale).steamGuardEmailPrompt
+                  : lookupGeneratedLocalizations(testLocale).steamGuardAppPrompt,
             ),
             findsOneWidget,
           );
           await tester.ensureVisible(find.byKey(const ValueKey('steam-guard')));
           await tester.enterText(find.byKey(const ValueKey('steam-guard')), 'ABCDE');
-          await tester.ensureVisible(find.text(GeneratedLocalizations.current.steamGuardSubmit));
-          await tester.tap(find.text(GeneratedLocalizations.current.steamGuardSubmit));
+          await tester.ensureVisible(find.text(lookupGeneratedLocalizations(testLocale).steamGuardSubmit));
+          await tester.tap(find.text(lookupGeneratedLocalizations(testLocale).steamGuardSubmit));
           await tester.pump();
           expect(auth.codeReceived, 'ABCDE');
           expect(find.byKey(const ValueKey('steam-guard')), findsNothing);
           expect(find.byType(LinearProgressIndicator), findsOneWidget);
-          expect(find.text(GeneratedLocalizations.current.steamGuardChecking), findsOneWidget);
+          expect(find.text(lookupGeneratedLocalizations(testLocale).steamGuardChecking), findsOneWidget);
         }
         expect(tester.takeException(), isNull);
       });
@@ -225,7 +232,7 @@ void main() {
 
     testWidgets('refresh button displays progress and prevents duplicate requests ($language)', (tester) async {
       testLocale = Locale(language);
-      await GeneratedLocalizations.load(testLocale);
+      await GeneratedLocalizations.delegate.load(testLocale);
       final auth = FakeAuth()..hasSavedSession = true;
       await tester.pumpWidget(
         MaterialApp(
@@ -236,7 +243,7 @@ void main() {
           home: SteamIntegrationView(controller: auth, autoStartQr: false),
         ),
       );
-      final refresh = language == 'ru' ? 'Обновить библиотеку' : 'Refresh library';
+      final String refresh = lookupGeneratedLocalizations(testLocale).refreshLibrary;
       await tester.tap(find.text(refresh));
       await tester.pump();
       expect(auth.selectedMethod, 'auto');
@@ -246,7 +253,11 @@ void main() {
         tester.widget<SteamButton>(find.ancestor(of: find.text(refresh), matching: find.byType(SteamButton))).onPressed,
         isNull,
       );
-      final phase = language == 'ru' ? 'Обновляем время в играх…' : 'Updating playtime…';
+      final String phase = switch (language) {
+        'ru' => 'Обновляем время в играх…',
+        'es' => 'Actualizando el tiempo jugado…',
+        _ => 'Updating playtime…',
+      };
       auth
         ..handleHelperEvent({
           'v': 1,
@@ -305,7 +316,10 @@ void main() {
     expect(repository.forgotAccount, isTrue);
     expect(auth.forgotSession, isTrue);
     expect(refreshes, 2);
-    expect(find.byKey(const ValueKey('steam-login')), findsOneWidget);
+    expect(
+      find.descendant(of: find.byKey(const ValueKey('steam-login')), matching: find.byType(TextField)),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 
@@ -367,7 +381,7 @@ void main() {
       ..finish(1);
     await tester.pumpAndSettle();
     expect(find.byType(SnackBar), findsOneWidget);
-    expect(find.text(GeneratedLocalizations.current.steamSyncFailed('synthetic')), findsOneWidget);
+    expect(find.text(lookupGeneratedLocalizations(testLocale).steamSyncFailed('synthetic')), findsOneWidget);
   });
 
   testWidgets('auth form stays usable on wide and narrow windows', (tester) async {
@@ -424,9 +438,20 @@ void main() {
     expect(find.byType(SteamQrCode), findsOneWidget);
     expect(
       tester.getTopLeft(find.byType(SteamQrCode)).dx,
-      greaterThan(tester.getTopRight(find.byKey(const ValueKey('steam-login'))).dx),
+      greaterThan(
+        tester
+            .getTopRight(
+              find.descendant(of: find.byKey(const ValueKey('steam-login')), matching: find.byType(TextField)),
+            )
+            .dx,
+      ),
     );
-    expect(tester.getSize(find.byKey(const ValueKey('steam-login'))).height, greaterThanOrEqualTo(48));
+    expect(
+      tester
+          .getSize(find.descendant(of: find.byKey(const ValueKey('steam-login')), matching: find.byType(TextField)))
+          .height,
+      greaterThanOrEqualTo(48),
+    );
     expect(auth.selectedMethod, 'qr');
     await tester.ensureVisible(find.text('Отменить'));
     await tester.tap(find.text('Отменить'));

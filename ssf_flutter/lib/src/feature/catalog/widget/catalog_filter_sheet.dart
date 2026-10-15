@@ -5,6 +5,7 @@ import 'package:ssf_flutter/src/feature/catalog/model/library_ownership.dart';
 import 'package:ssf_flutter/src/feature/catalog/widget/catalog_labels.dart';
 import 'package:ssf_flutter/src/feature/steam/model/steam_app_type.dart';
 import 'package:ssf_flutter/src/localization/generated/l10n.dart';
+import 'package:ssf_flutter/src/ui_kit/controls/steam_text_field.dart';
 import 'package:ssf_flutter/src/ui_kit/steam_ui_kit.dart';
 
 enum CatalogStatus() {
@@ -15,12 +16,12 @@ enum CatalogStatus() {
   favorite,
 }
 
-String catalogStatusLabel(CatalogStatus status) => switch (status) {
-  CatalogStatus.all => GeneratedLocalizations.current.all,
-  CatalogStatus.running => GeneratedLocalizations.current.statusRunning,
-  CatalogStatus.marked => GeneratedLocalizations.current.marked,
-  CatalogStatus.hidden => GeneratedLocalizations.current.hidden,
-  CatalogStatus.favorite => GeneratedLocalizations.current.favorites,
+String catalogStatusLabel(GeneratedLocalizations l10n, CatalogStatus status) => switch (status) {
+  CatalogStatus.all => l10n.all,
+  CatalogStatus.running => l10n.statusRunning,
+  CatalogStatus.marked => l10n.marked,
+  CatalogStatus.hidden => l10n.hidden,
+  CatalogStatus.favorite => l10n.favorites,
 };
 
 class const CatalogFilterState({
@@ -222,7 +223,7 @@ class _CatalogFilterSheetState() extends State<CatalogFilterSheet> {
                       onPressed: () => _changeStatus(status),
                       child: Row(
                         children: [
-                          Expanded(child: Text(catalogStatusLabel(status))),
+                          Expanded(child: Text(catalogStatusLabel(GeneratedLocalizations.of(context), status))),
                           if (status == _status) const Icon(Icons.check, size: 16, color: SteamUiColors.accent),
                         ],
                       ),
@@ -244,7 +245,7 @@ class _CatalogFilterSheetState() extends State<CatalogFilterSheet> {
                       },
                       child: Row(
                         children: [
-                          Expanded(child: Text(appTypeLabel(type))),
+                          Expanded(child: Text(appTypeLabel(GeneratedLocalizations.of(context), type))),
                           if (_selectedTypes.contains(type))
                             const Icon(Icons.check, size: 16, color: SteamUiColors.accent),
                         ],
@@ -267,7 +268,7 @@ class _CatalogFilterSheetState() extends State<CatalogFilterSheet> {
                       },
                       child: Row(
                         children: [
-                          Expanded(child: Text(ownershipLabel(ownership))),
+                          Expanded(child: Text(ownershipLabel(GeneratedLocalizations.of(context), ownership))),
                           if (_ownership.contains(ownership))
                             const Icon(Icons.check, size: 16, color: SteamUiColors.accent),
                         ],
@@ -297,7 +298,7 @@ class _CatalogFilterSheetState() extends State<CatalogFilterSheet> {
                   Row(
                     children: [
                       Expanded(
-                        child: TextField(
+                        child: SteamTextField(
                           controller: _minimumController,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
                           inputFormatters: _timeInputFormatters,
@@ -307,7 +308,7 @@ class _CatalogFilterSheetState() extends State<CatalogFilterSheet> {
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: TextField(
+                        child: SteamTextField(
                           controller: _maximumController,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
                           inputFormatters: _timeInputFormatters,

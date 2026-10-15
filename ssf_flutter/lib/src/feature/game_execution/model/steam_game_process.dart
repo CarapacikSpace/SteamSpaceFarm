@@ -5,8 +5,8 @@ import 'package:ssf_flutter/src/feature/catalog/model/local_app.dart';
 import 'package:ssf_flutter/src/feature/game_execution/data/game_runner_connection.dart';
 
 @immutable
-class const SteamGameProcess({required final GameRunnerConnection connection, required final LocalApp app}) {
-  int get pid => connection.process.pid;
+class const SteamGameProcess({required final GameConnection connection, required final LocalApp app}) {
+  int get pid => connection.pid;
 
   Process get process => connection.process;
 

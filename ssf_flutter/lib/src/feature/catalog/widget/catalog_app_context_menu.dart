@@ -56,7 +56,7 @@ class _CatalogAppContextMenuState() extends State<CatalogAppContextMenu> {
   static final ButtonStyle _itemStyle = ButtonStyle(
     minimumSize: const WidgetStatePropertyAll(Size(0, 32)),
     maximumSize: const WidgetStatePropertyAll(Size(double.infinity, 32)),
-    padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 6)),
+    padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 18)),
     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
     visualDensity: VisualDensity.standard,
     shape: const WidgetStatePropertyAll(RoundedRectangleBorder()),
@@ -75,7 +75,9 @@ class _CatalogAppContextMenuState() extends State<CatalogAppContextMenu> {
     mouseCursor: WidgetStateProperty.resolveWith(
       (states) => states.contains(WidgetState.disabled) ? SystemMouseCursors.basic : SystemMouseCursors.click,
     ),
-    textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 14, height: 17 / 14)),
+    textStyle: const WidgetStatePropertyAll(
+      TextStyle(fontFamily: 'Segoe UI', fontSize: 14, height: 17 / 14, fontWeight: FontWeight.w400, letterSpacing: 0),
+    ),
   );
 
   Widget _item(String label, CatalogAppMenuAction action) => MouseRegion(
@@ -87,13 +89,19 @@ class _CatalogAppContextMenuState() extends State<CatalogAppContextMenu> {
     child: TextButton(style: _itemStyle, onPressed: widget.isBusy ? null : () => _select(action), child: Text(label)),
   );
 
-  Widget _panel(List<Widget> children) => Material(
-    color: SteamUiColors.raisedSurface,
-    elevation: 12,
-    shadowColor: const Color(0xCC000000),
-    child: SingleChildScrollView(
-      padding: const EdgeInsets.all(4),
-      child: IntrinsicWidth(
+  Widget _panel(List<Widget> children, {bool submenu = false}) => SizedBox(
+    // Precomputed for Segoe UI 14: widest label + 2 × (18 text padding + 2 outer inset).
+    width: switch (Localizations.localeOf(context).languageCode) {
+      'ru' => submenu ? 140 : 196,
+      'es' => submenu ? 174 : 170,
+      _ => submenu ? 144 : 180,
+    },
+    child: Material(
+      color: SteamUiColors.raisedSurface,
+      elevation: submenu ? 24 : 12,
+      shadowColor: const Color(0xCC000000),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -163,7 +171,7 @@ class _CatalogAppContextMenuState() extends State<CatalogAppContextMenu> {
               onPressed: widget.isBusy ? null : () => _select(CatalogAppMenuAction.stopTime),
               child: Text(l10n.autoStop),
             ),
-          ]),
+          ], submenu: true),
           child: MouseRegion(
             onEnter: widget.isBusy ? null : (_) => setState(() => _editing = true),
             child: Focus(

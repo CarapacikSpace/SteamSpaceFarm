@@ -24,6 +24,10 @@ import 'package:ssf_flutter/src/feature/game_execution/widget/game_execution_pan
 import 'package:ssf_flutter/src/feature/settings/model/app_settings.dart';
 import 'package:ssf_flutter/src/feature/settings/widget/settings_screen.dart';
 import 'package:ssf_flutter/src/feature/steam/data/steam_session_store.dart';
+import 'package:ssf_flutter/src/feature/steam/logic/steam_library_controller.dart';
+import 'package:ssf_flutter/src/feature/steam/logic/steam_library_sync_controller.dart';
+import 'package:ssf_flutter/src/feature/steam/logic/steam_sync_status.dart';
+import 'package:ssf_flutter/src/feature/steam/model/steam_helper_event.dart';
 import 'package:ssf_flutter/src/localization/generated/l10n.dart';
 import 'package:ssf_flutter/src/ui_kit/steam_ui_kit.dart';
 import 'package:ssf_flutter/src/utils/optional.dart';
@@ -40,6 +44,7 @@ class const CatalogScreen({
   required final SteamGameService steamGameService,
   required final AppSettings settings,
   final Future<bool> Function()? sessionExists,
+  final SteamLibrarySyncController? startupSync,
   super.key,
 }) extends StatefulWidget {
   static const searchKey = Key('catalog-search');
@@ -51,6 +56,10 @@ class const CatalogScreen({
 }
 
 class _CatalogScreenState() extends State<CatalogScreen> {
+  SteamLibraryController? _startupLibrary;
+  bool get _refreshing => (_startupLibrary?.sync.busy ?? false) || (_startupLibrary?.saving ?? false);
+  int _startupNotice = 0;
+
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   late final CatalogController _catalogController;
@@ -80,10 +89,40 @@ class _CatalogScreenState() extends State<CatalogScreen> {
       steamGameService: widget.steamGameService,
       catalogController: _catalogController,
       onUserError: _showMessage,
+      localizations: () => GeneratedLocalizations.of(context),
     );
     _screenListenable = Listenable.merge([_catalogController, _executionController]);
     _searchFocusNode.addListener(_handleSearchFocusChanged);
-    unawaited(_catalogController.loadCache());
+    widget.steamGameService.experimentalSteamKit = widget.settings.experimentalSteamKit;
+    widget.steamGameService.invisibleWhilePlaying = widget.settings.invisibleWhilePlaying;
+    unawaited(_initializeCatalog());
+  }
+
+  Future<void> _initializeCatalog() async {
+    await _catalogController.loadCache();
+    if (!mounted || !widget.settings.refreshOnStartup || !_catalogController.hasSession) {
+      return;
+    }
+    final SteamLibrarySyncController sync =
+        widget.startupSync ?? SteamLibrarySyncController(processManager: widget.steamGameService.processManager);
+    _startupLibrary = SteamLibraryController(
+      sync: sync,
+      repository: widget.appsRepository,
+      onLibraryUpdated: _catalogController.loadCache,
+    )..addListener(_startupChanged);
+    await sync.start(SteamSignInMethod.session);
+  }
+
+  void _startupChanged() {
+    if (!mounted) {
+      return;
+    }
+    final SteamLibraryController library = _startupLibrary!;
+    if (library.noticeRevision != _startupNotice) {
+      _startupNotice = library.noticeRevision;
+      _showMessage(steamLibraryNotice(library, GeneratedLocalizations.of(context)));
+    }
+    setState(() {});
   }
 
   void _handleSearchFocusChanged() {
@@ -95,6 +134,8 @@ class _CatalogScreenState() extends State<CatalogScreen> {
   @override
   void didUpdateWidget(covariant CatalogScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    widget.steamGameService.experimentalSteamKit = widget.settings.experimentalSteamKit;
+    widget.steamGameService.invisibleWhilePlaying = widget.settings.invisibleWhilePlaying;
     if (oldWidget.settings.cardType != widget.settings.cardType) {
       _cardType = widget.settings.cardType;
     }
@@ -102,6 +143,8 @@ class _CatalogScreenState() extends State<CatalogScreen> {
 
   @override
   void dispose() {
+    _startupLibrary?.removeListener(_startupChanged);
+    _startupLibrary?.dispose();
     _searchController.dispose();
     _searchFocusNode
       ..removeListener(_handleSearchFocusChanged)
@@ -183,6 +226,10 @@ class _CatalogScreenState() extends State<CatalogScreen> {
   }
 
   Future<void> _showBulkLaunch() async {
+    if (_refreshing) {
+      _showMessage(GeneratedLocalizations.of(context).libraryRefreshInProgress);
+      return;
+    }
     if (_executionController.isQueueActive) {
       await _confirmStopQueue();
       return;
@@ -213,6 +260,10 @@ class _CatalogScreenState() extends State<CatalogScreen> {
   }
 
   Future<void> _toggleAppExecution(LocalApp app) async {
+    if (_refreshing) {
+      _showMessage(GeneratedLocalizations.of(context).libraryRefreshInProgress);
+      return;
+    }
     final String? rejection = await _executionController.toggleApp(app);
     if (rejection != null && mounted) {
       _showMessage(rejection);
@@ -343,7 +394,12 @@ class _CatalogScreenState() extends State<CatalogScreen> {
   }
 
   Future<void> _openSettings({bool steam = false, bool refreshLibrary = false}) async {
-    if (!_canChangeLibrary()) {
+    if (_refreshing && (steam || refreshLibrary)) {
+      final GeneratedLocalizations l10n = GeneratedLocalizations.of(context);
+      _showMessage(l10n.libraryRefreshInProgress);
+      return;
+    }
+    if (refreshLibrary && !_canChangeLibrary()) {
       return;
     }
     await Navigator.of(context).push<void>(
@@ -354,6 +410,7 @@ class _CatalogScreenState() extends State<CatalogScreen> {
           onLibraryUpdated: _catalogController.loadCache,
           openSteam: steam,
           refreshSteamLibrary: refreshLibrary,
+          backgroundLibrary: _startupLibrary,
         ),
       ),
     );
@@ -541,147 +598,155 @@ class _CatalogScreenState() extends State<CatalogScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: LayoutBuilder(
-        builder: (context, constraints) {
-          const title = 'STEAM SPACE FARM';
-          final double titleWidth = TextPainter.computeWidth(
-            text: TextSpan(text: title, style: DefaultTextStyle.of(context).style),
-            textDirection: Directionality.of(context),
-            textScaler: MediaQuery.textScalerOf(context),
-            locale: Localizations.localeOf(context),
-            maxLines: 1,
-          );
-          return Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset('assets/logo/app_logo_transparent.png', width: 32, height: 32, semanticLabel: title),
-              if (constraints.maxWidth >= 32 + 4 + titleWidth) ...[
-                const SizedBox(width: 4),
-                const ExcludeSemantics(child: Text(title, maxLines: 1)),
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: _executionController,
+    builder: (context, _) => Scaffold(
+      appBar: AppBar(
+        titleSpacing: 20,
+        title: LayoutBuilder(
+          builder: (context, constraints) {
+            const title = 'STEAM SPACE FARM';
+            final double titleWidth = TextPainter.computeWidth(
+              text: TextSpan(text: title, style: DefaultTextStyle.of(context).style),
+              textDirection: Directionality.of(context),
+              textScaler: MediaQuery.textScalerOf(context),
+              locale: Localizations.localeOf(context),
+              maxLines: 1,
+            );
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset('assets/logo/app_logo_transparent.png', width: 32, height: 32, semanticLabel: title),
+                if (constraints.maxWidth >= 32 + 4 + titleWidth) ...[
+                  const SizedBox(width: 4),
+                  const ExcludeSemantics(child: Text(title, maxLines: 1)),
+                ],
               ],
-            ],
-          );
-        },
+            );
+          },
+        ),
+        actions: [
+          _HeaderActionButton(
+            tooltip: GeneratedLocalizations.of(context).refreshLibrary,
+            onPressed: _refreshing || widget.steamGameService.processManager.hasActiveGames
+                ? null
+                : () => unawaited(_openSettings(steam: true, refreshLibrary: true)),
+            icon: _refreshing
+                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.sync),
+          ),
+          const SizedBox(width: 4),
+          _HeaderActionButton(
+            tooltip: GeneratedLocalizations.of(context).settings,
+            onPressed: () => unawaited(_openSettings()),
+            icon: const Icon(Icons.settings_outlined),
+          ),
+          const SizedBox(width: 4),
+          _HeaderActionButton(
+            tooltip: GeneratedLocalizations.of(context).stopAll,
+            onPressed: () => unawaited(_confirmHardStop()),
+            icon: const Icon(Icons.power_settings_new),
+          ),
+          const SizedBox(width: 20),
+        ],
       ),
-      actions: [
-        _HeaderActionButton(
-          tooltip: GeneratedLocalizations.of(context).refreshLibrary,
-          onPressed: () => unawaited(_openSettings(steam: true, refreshLibrary: true)),
-          icon: const Icon(Icons.sync),
-        ),
-        const SizedBox(width: 4),
-        _HeaderActionButton(
-          tooltip: GeneratedLocalizations.of(context).settings,
-          onPressed: () => unawaited(_openSettings()),
-          icon: const Icon(Icons.settings_outlined),
-        ),
-        const SizedBox(width: 4),
-        _HeaderActionButton(
-          tooltip: GeneratedLocalizations.of(context).stopAll,
-          onPressed: () => unawaited(_confirmHardStop()),
-          icon: const Icon(Icons.power_settings_new),
-        ),
-        const SizedBox(width: 8),
-      ],
-    ),
-    body: SteamLibraryBackground(
-      child: ListenableBuilder(
-        listenable: _screenListenable,
-        builder: (context, _) => Column(
-          children: [
-            GameExecutionPanel(
-              controller: _executionController,
-              onTogglePause: _executionController.toggleQueuePause,
-              onStopQueue: () => unawaited(_confirmStopQueue()),
-              onStopManual: () => unawaited(_confirmStopManualApps()),
-            ),
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final bool compact = constraints.maxWidth < 600;
-                  final double horizontalPadding = compact ? 12 : 20;
-                  final List<LocalApp> apps = _visibleApps;
-                  final Widget cards = CustomScrollView(
-                    key: CatalogScreen.catalogKey,
-                    slivers: [
-                      if (_catalogController.isLoading)
-                        const SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: Center(child: CircularProgressIndicator()),
-                        )
-                      else if (_catalogController.error case final Object error)
-                        SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: _CatalogError(error: error, onRetry: _catalogController.loadCache),
-                        )
-                      else if (_catalogController.apps.isEmpty)
-                        SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: _EmptyLibrary(
-                            hasSession: _catalogController.hasSession,
-                            onOpenSteam: () =>
-                                unawaited(_openSettings(steam: true, refreshLibrary: _catalogController.hasSession)),
-                          ),
-                        )
-                      else if (apps.isEmpty)
-                        SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: _EmptyCatalog(onEditFilters: _showFilters, onResetFilters: _resetCatalogFilters),
-                        )
-                      else if (_cardType == SteamAppCardType.appIcon)
-                        SliverPadding(
-                          padding: EdgeInsets.fromLTRB(horizontalPadding, 6, horizontalPadding, 24),
-                          sliver: SliverList(
-                            delegate: SliverChildBuilderDelegate((context, index) {
-                              return Padding(
-                                padding: EdgeInsets.only(bottom: compact ? 8 : 10),
-                                child: SizedBox(height: 60, child: _buildAppCard(apps[index])),
-                              );
-                            }, childCount: apps.length),
-                          ),
-                        )
-                      else
-                        SliverPadding(
-                          padding: EdgeInsets.fromLTRB(horizontalPadding, 6, horizontalPadding, 24),
-                          sliver: SliverGrid(
-                            gridDelegate: _FixedCardGridDelegate(
-                              cardWidth: switch (_cardType) {
-                                SteamAppCardType.libraryCapsule => 170,
-                                SteamAppCardType.mainCapsule || SteamAppCardType.storeHeader => 170,
-                                SteamAppCardType.appIcon => 170,
-                              },
-                              cardHeight: switch (_cardType) {
-                                SteamAppCardType.libraryCapsule => 275,
-                                SteamAppCardType.mainCapsule => 173,
-                                SteamAppCardType.storeHeader => 155,
-                                SteamAppCardType.appIcon => 60,
-                              },
-                              minimumSpacing: compact ? 10 : 14,
-                            ),
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) => _buildAppCard(apps[index]),
-                              childCount: apps.length,
-                            ),
-                          ),
-                        ),
-                    ],
-                  );
-                  final Widget catalog = Column(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(horizontalPadding, 16, horizontalPadding, 10),
-                        child: _buildControls(compact: compact, resultCount: apps.length),
-                      ),
-                      Expanded(child: cards),
-                    ],
-                  );
-                  return catalog;
-                },
+      body: SteamLibraryBackground(
+        child: ListenableBuilder(
+          listenable: _screenListenable,
+          builder: (context, _) => Column(
+            children: [
+              GameExecutionPanel(
+                controller: _executionController,
+                onTogglePause: _executionController.toggleQueuePause,
+                onStopQueue: () => unawaited(_confirmStopQueue()),
+                onStopManual: () => unawaited(_confirmStopManualApps()),
               ),
-            ),
-          ],
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final bool compact = constraints.maxWidth < 600;
+                    const double horizontalPadding = 20;
+                    final List<LocalApp> apps = _visibleApps;
+                    final Widget cards = CustomScrollView(
+                      key: CatalogScreen.catalogKey,
+                      slivers: [
+                        if (_catalogController.isLoading)
+                          const SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: Center(child: CircularProgressIndicator()),
+                          )
+                        else if (_catalogController.error case final Object error)
+                          SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: _CatalogError(error: error, onRetry: _catalogController.loadCache),
+                          )
+                        else if (_catalogController.apps.isEmpty)
+                          SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: _EmptyLibrary(
+                              hasSession: _catalogController.hasSession,
+                              onOpenSteam: () =>
+                                  unawaited(_openSettings(steam: true, refreshLibrary: _catalogController.hasSession)),
+                            ),
+                          )
+                        else if (apps.isEmpty)
+                          SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: _EmptyCatalog(onEditFilters: _showFilters, onResetFilters: _resetCatalogFilters),
+                          )
+                        else if (_cardType == SteamAppCardType.appIcon)
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(horizontalPadding, 6, horizontalPadding, 24),
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate((context, index) {
+                                return Padding(
+                                  padding: EdgeInsets.only(bottom: compact ? 8 : 10),
+                                  child: SizedBox(height: 60, child: _buildAppCard(apps[index])),
+                                );
+                              }, childCount: apps.length),
+                            ),
+                          )
+                        else
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(horizontalPadding, 6, horizontalPadding, 24),
+                            sliver: SliverGrid(
+                              gridDelegate: _FixedCardGridDelegate(
+                                cardWidth: switch (_cardType) {
+                                  SteamAppCardType.libraryCapsule => 170,
+                                  SteamAppCardType.mainCapsule || SteamAppCardType.storeHeader => 170,
+                                  SteamAppCardType.appIcon => 170,
+                                },
+                                cardHeight: switch (_cardType) {
+                                  SteamAppCardType.libraryCapsule => 275,
+                                  SteamAppCardType.mainCapsule => 173,
+                                  SteamAppCardType.storeHeader => 155,
+                                  SteamAppCardType.appIcon => 60,
+                                },
+                                minimumSpacing: compact ? 10 : 14,
+                              ),
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) => _buildAppCard(apps[index]),
+                                childCount: apps.length,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                    final Widget catalog = Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(horizontalPadding, 16, horizontalPadding, 10),
+                          child: _buildControls(compact: compact, resultCount: apps.length),
+                        ),
+                        Expanded(child: cards),
+                      ],
+                    );
+                    return catalog;
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     ),
@@ -791,11 +856,11 @@ class _CatalogScreenState() extends State<CatalogScreen> {
     );
   }
 
-  static String _sortLabel(_CatalogSort sort) => switch (sort) {
-    _CatalogSort.playtime => GeneratedLocalizations.current.byPlaytime,
-    _CatalogSort.name => GeneratedLocalizations.current.alphabetical,
-    _CatalogSort.lastPlayed => GeneratedLocalizations.current.byLastPlayed,
-    _CatalogSort.remaining => GeneratedLocalizations.current.byTimeUntilTarget,
+  String _sortLabel(_CatalogSort sort) => switch (sort) {
+    _CatalogSort.playtime => GeneratedLocalizations.of(context).byPlaytime,
+    _CatalogSort.name => GeneratedLocalizations.of(context).alphabetical,
+    _CatalogSort.lastPlayed => GeneratedLocalizations.of(context).byLastPlayed,
+    _CatalogSort.remaining => GeneratedLocalizations.of(context).byTimeUntilTarget,
   };
 }
 
@@ -810,7 +875,7 @@ extension on _CatalogSort {
 
 class const _HeaderActionButton({
   required final String tooltip,
-  required final VoidCallback onPressed,
+  required final VoidCallback? onPressed,
   required final Widget icon,
 }) extends StatelessWidget {
   @override

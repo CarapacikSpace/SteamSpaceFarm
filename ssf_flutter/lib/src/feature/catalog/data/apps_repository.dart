@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:ssf_flutter/src/feature/catalog/model/local_app.dart';
+import 'package:ssf_flutter/src/feature/steam/model/steam_app_type.dart';
 import 'package:ssf_flutter/src/feature/steam/model/steam_library_snapshot.dart';
 import 'package:ssf_flutter/src/storage/app_paths.dart';
 import 'package:ssf_flutter/src/utils/serial_task_queue.dart';
@@ -62,7 +63,49 @@ class AppsRepository({final Directory? libraryDirectory}) implements IAppsReposi
 
   Future<Map<String, dynamic>?> _readLibrary() async {
     final File file = _libraryFile;
-    return file.existsSync() ? jsonDecode(await file.readAsString()) as Map<String, dynamic> : null;
+    if (!await file.exists()) {
+      return null;
+    }
+    try {
+      final Object? value = jsonDecode(await file.readAsString());
+      if (value is! Map<String, dynamic> || value['schemaVersion'] != 1 || value['apps'] is! List<dynamic>) {
+        throw const FormatException('Invalid catalog');
+      }
+      for (final dynamic app in value['apps'] as List<dynamic>) {
+        if (app is! Map<String, dynamic> ||
+            app['appId'] is! int ||
+            app['name'] is! String ||
+            app['type'] is! int ||
+            !SteamAppType.values.any((type) => type.index == app['type']) ||
+            ['playtimeMinutes', 'stopAtMinutes', 'lastPlayed'].any((key) => app[key] != null && app[key] is! int) ||
+            [
+              'isFavorite',
+              'isHidden',
+              'isLibraryOwnershipManual',
+            ].any((key) => app[key] != null && app[key] is! bool) ||
+            (app['icon'] != null && app['icon'] is! String)) {
+          throw const FormatException('Invalid catalog entry');
+        }
+      }
+      if (value['steamId'] != null && value['steamId'] is! String) {
+        throw const FormatException('Invalid catalog account');
+      }
+      return value;
+    } on FormatException {
+      await _quarantine(file);
+    }
+    return null;
+  }
+
+  Future<void> _quarantine(File file) async {
+    // Preserve recoverable user edits instead of overwriting malformed data.
+    try {
+      await file.rename('${file.path}.corrupt-${DateTime.now().microsecondsSinceEpoch}');
+    } on FileSystemException {
+      if (await file.exists()) {
+        rethrow;
+      }
+    }
   }
 
   Future<void> _saveLibrary(Map<String, dynamic> library) async {
