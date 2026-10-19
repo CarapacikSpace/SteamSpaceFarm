@@ -11,6 +11,7 @@ typedef SteamKitProcessStarter = Future<Process> Function(String executable, Lis
 class SteamKitSession({
   required final String steamId,
   bool invisible = false,
+  bool dataOnly = false,
   SteamKitProcessStarter? startProcess,
   String? sessionDirectory,
 }) {
@@ -22,6 +23,7 @@ class SteamKitSession({
       '--expected-steam-id',
       steamId,
       if (invisible) '--invisible',
+      if (dataOnly) '--data-only',
     ]);
     unawaited(_open());
     unawaited(_ready.future.then<void>((_) {}, onError: (Object _, StackTrace _) {}));
@@ -46,6 +48,52 @@ class SteamKitSession({
   Future<void>? _closing;
   bool _failed = false;
   bool closed = false;
+  bool keepAlive = false;
+  int _requestId = 0;
+  int _queryGeneration = 0;
+  final _requests = <String, Completer<Map<String, dynamic>>>{};
+
+  Future<Map<String, dynamic>> query(String command, {List<int> appIds = const []}) async {
+    final int generation = _queryGeneration;
+    await _ready.future.timeout(const Duration(seconds: 65));
+    if (closed || generation != _queryGeneration) {
+      throw const GameRunnerException('steamkit_session_failed');
+    }
+    final id = '${++_requestId}';
+    final completion = Completer<Map<String, dynamic>>();
+    // Cancellation or a fast helper failure can arrive while stdin is flushing.
+    unawaited(completion.future.then<void>((_) {}, onError: (Object _, StackTrace _) {}));
+    _requests[id] = completion;
+    try {
+      _process!.stdin.writeln(jsonEncode({'v': 1, 'command': command, 'requestId': id, 'appIds': appIds}));
+      await _process!.stdin.flush().timeout(const Duration(seconds: 2));
+      return await completion.future.timeout(const Duration(minutes: 5, seconds: 5));
+    } finally {
+      _requests.remove(id);
+    }
+  }
+
+  void _failRequests() {
+    for (final Completer<Map<String, dynamic>> request in _requests.values) {
+      if (!request.isCompleted) {
+        request.completeError(const GameRunnerException('steamkit_session_failed'));
+      }
+    }
+    _requests.clear();
+  }
+
+  void cancelQueries() {
+    _queryGeneration++;
+    if (!closed && _process != null) {
+      try {
+        _process!.stdin.writeln('{"v":1,"command":"cancel_data"}');
+      } on Object {
+        /* Already closed. */
+      }
+    }
+    _failRequests();
+  }
+
   static int _nextId = -1;
 
   Future<void> _open() async {
@@ -55,6 +103,7 @@ class SteamKitSession({
         process.exitCode.then((code) {
           closed = true;
           _failReady();
+          _failRequests();
           for (final SteamKitGameConnection game in _games.values.toList()) {
             game.finish(_failed || (code == 0 && _closing == null) ? 6 : code);
           }
@@ -112,6 +161,17 @@ class SteamKitSession({
       if (value['v'] != 1 || value['steamId'] != steamId) {
         throw const FormatException('identity');
       }
+      if (value['event'] == 'data') {
+        final Completer<Map<String, dynamic>>? request = _requests[value['requestId']];
+        if (request != null && !request.isCompleted) {
+          if (value['error'] != null) {
+            request.completeError(const GameRunnerException('session_data_failed'));
+          } else {
+            request.complete(value);
+          }
+        }
+        return;
+      }
       if (value['event'] == 'session_ready') {
         if (_ready.isCompleted || value['runId'] != '' || value['appId'] != 0) {
           throw const FormatException('ready');
@@ -133,7 +193,7 @@ class SteamKitSession({
         case 'ready':
           game.ready();
         case 'stopped':
-          if (_games.length == 1) {
+          if (_games.length == 1 && !keepAlive) {
             // Keep the last game active until the shared helper has disconnected.
             unawaited(shutdown());
           } else {
@@ -173,9 +233,11 @@ class SteamKitSession({
   }
 
   Future<void> shutdown() => _closing ??= _shutdown();
+
   Future<void> _shutdown() async {
     closed = true;
     _failReady();
+    _failRequests();
     Process process;
     try {
       process = await _spawn;
@@ -205,7 +267,7 @@ class SteamKitSession({
           yield utf8.decode(pending);
           pending.clear();
         } else {
-          if (pending.length >= 8192) {
+          if (pending.length >= 2 * 1024 * 1024) {
             throw const FormatException('frame_too_large');
           }
           pending.add(byte);
@@ -227,6 +289,7 @@ final class SteamKitGameConnection(
   this {
     unawaited(_ready.future.then<void>((_) {}, onError: (Object _, StackTrace _) {}));
   }
+
   @override
   Process get process => _session._process!;
   @override
@@ -236,8 +299,10 @@ final class SteamKitGameConnection(
   final _ready = Completer<void>();
   final _exit = Completer<int>();
   Future<void>? _stopping;
+
   @override
   Future<int> get exitCode => _exit.future;
+
   void ready() {
     if (_ready.isCompleted) {
       throw const FormatException('duplicate ready');
@@ -260,12 +325,14 @@ final class SteamKitGameConnection(
 
   @override
   Future<void> waitUntilReady({Duration timeout = const Duration(seconds: 15)}) => _ready.future.timeout(timeout);
+
   @override
   Future<void> updateDeadline(Duration? remaining) => exited
       ? Future.value()
       : remaining != null && remaining <= Duration.zero
       ? stop()
       : _session.send(this, 'update_deadline', remaining);
+
   @override
   Future<void> stop({bool force = false}) {
     if (exited) {

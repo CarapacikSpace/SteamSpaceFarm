@@ -497,8 +497,8 @@
   "runnerSteamPresenceFailed": "Could not switch to Invisible. Check your Steam connection and try again.",
   "invisibleWhilePlaying": "Go invisible when starting games",
   "invisibleWhilePlayingHint": "For Steamworks and SteamKit. Restores your previous status after all games stop. SteamKit also works without the local Steam client.",
-  "experimentalSteamKit": "Launch via SteamKit — EXPERIMENTAL",
-  "experimentalSteamKitHint": "Game sessions and Invisible status work without the local Steam client running: just sign in to SteamSpaceFarm. Steam determines whether playtime is recorded.",
+  "experimentalSteamKit": "Run without the Steam client open",
+  "experimentalSteamKitHint": "Just sign in to SteamSpaceFarm. Game sessions and Invisible status work even when the Steam client is closed. Steam determines whether playtime is recorded.",
   "gamesBlockLibrary": "Stop all games before refreshing the library or signing out.",
   "leaveLibraryUpdateTitle": "Stop updating the library?",
   "leaveLibraryUpdateMessage": "Leaving this screen will stop the library update. The saved catalog will remain available.",
@@ -509,6 +509,67 @@
   "runnerSteamKitFailed": "SteamKit could not confirm the session. Sign in to Steam again and retry.",
   "sessionSettingsShort": "Sessions",
   "gameSessionInterrupted": "The session for {name} (AppID {appId}) ended unexpectedly. Check your Steam connection before restarting. Active queues have been paused.",
-  "@gameSessionInterrupted": {"placeholders": {"name": {"type": "String"}, "appId": {"type": "int"}}},
-  "steamPresenceRestoreFailed": "Could not restore your previous Steam status after several attempts. Check your status in Steam."
+  "@gameSessionInterrupted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "appId": {
+        "type": "int"
+      }
+    }
+  },
+  "steamPresenceRestoreFailed": "Could not restore your previous Steam status after several attempts. Check your status in Steam.",
+  "cardFarmingMode": "Card farming mode",
+  "cardModeFast": "Fast",
+  "cardModeSequential": "One at a time",
+  "cardModeCombined": "Combined",
+  "cardModeFastHint": "Alternates 5 minutes of simultaneous sessions with short individual sessions.",
+  "cardModeSequentialHint": "Runs one game until its available card drops are exhausted, then moves to the next.",
+  "cardModeCombinedHint": "First builds up 2 hours in multiple games, then farms one game at a time.",
+  "refreshPlaytimeHourly": "Update Steam playtime every hour",
+  "refreshPlaytimeHourlyHint": "Temporarily stops sessions, retrieves playtime from Steam, then resumes them.",
+  "cardsTitle": "Trading cards",
+  "cardsRefresh": "Check card drops",
+  "cardsStartAll": "Farm all cards",
+  "cardsStart": "Farm cards",
+  "cardsUnknown": "Card drops have not been checked yet",
+  "cardsEmpty": "No cards",
+  "cardsPartial": "Data is incomplete. An unknown count is not treated as zero.",
+  "cardsFailed": "Could not check data or run the session. Please retry.",
+  "cardsPriority": "Cards take priority over regular playtime. Hour progress is preserved.",
+  "cardsFilter": "With card drops",
+  "cardsRemaining": "Card drops remaining: {count}",
+  "@cardsRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cardsCheckedAt": "Checked: {time}",
+  "@cardsCheckedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "cardsQueued": "Card games queued: {count}",
+  "@cardsQueued": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "workPreparing": "Preparing sessions",
+  "workGroup": "Cards: simultaneous sessions",
+  "workSingle": "Cards: one game",
+  "workChecking": "Checking remaining card drops",
+  "workWaiting": "Waiting / paused",
+  "workSyncing": "Updating Steam playtime",
+  "cardsStopDescription": "Stop card farming and resume waiting playtime sessions?",
+  "cardsCount": "Cards {count}",
+  "@cardsCount": {"placeholders": {"count": {"type": "int"}}}
 }

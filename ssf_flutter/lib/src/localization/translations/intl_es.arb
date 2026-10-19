@@ -497,8 +497,8 @@
   "runnerSteamPresenceFailed": "No se pudo cambiar al estado Invisible. Comprueba tu conexión con Steam y vuelve a intentarlo.",
   "invisibleWhilePlaying": "Ponerse invisible al iniciar juegos",
   "invisibleWhilePlayingHint": "Para Steamworks y SteamKit. Restaura el estado anterior al detener todos los juegos. SteamKit también funciona sin el cliente local de Steam.",
-  "experimentalSteamKit": "Iniciar mediante SteamKit — EXPERIMENTAL",
-  "experimentalSteamKitHint": "Las sesiones de juego y el estado Invisible funcionan sin el cliente local de Steam abierto: basta con iniciar sesión en SteamSpaceFarm. Steam determina si se registra el tiempo jugado.",
+  "experimentalSteamKit": "Iniciar sin abrir el cliente de Steam",
+  "experimentalSteamKitHint": "Solo tienes que iniciar sesión en SteamSpaceFarm. Las sesiones de juego y el estado Invisible funcionan incluso con el cliente de Steam cerrado. Steam determina si se registra el tiempo jugado.",
   "gamesBlockLibrary": "Detén todos los juegos antes de actualizar la biblioteca o cerrar sesión.",
   "leaveLibraryUpdateTitle": "¿Detener la actualización de la biblioteca?",
   "leaveLibraryUpdateMessage": "Si sales de esta pantalla, se detendrá la actualización de la biblioteca. El catálogo guardado seguirá disponible.",
@@ -509,6 +509,67 @@
   "runnerSteamKitFailed": "SteamKit no pudo confirmar la sesión. Vuelve a iniciar sesión en Steam e inténtalo de nuevo.",
   "sessionSettingsShort": "Sesiones",
   "gameSessionInterrupted": "La sesión de {name} (AppID {appId}) terminó inesperadamente. Comprueba tu conexión con Steam antes de reiniciarla. Las colas activas se han pausado.",
-  "@gameSessionInterrupted": {"placeholders": {"name": {"type": "String"}, "appId": {"type": "int"}}},
-  "steamPresenceRestoreFailed": "No se pudo restaurar tu estado anterior de Steam tras varios intentos. Comprueba tu estado en Steam."
+  "@gameSessionInterrupted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "appId": {
+        "type": "int"
+      }
+    }
+  },
+  "steamPresenceRestoreFailed": "No se pudo restaurar tu estado anterior de Steam tras varios intentos. Comprueba tu estado en Steam.",
+  "cardFarmingMode": "Modo de obtención de cromos",
+  "cardModeFast": "Rápido",
+  "cardModeSequential": "De uno en uno",
+  "cardModeCombined": "Combinado",
+  "cardModeFastHint": "Alterna 5 minutos de sesiones simultáneas con sesiones individuales breves.",
+  "cardModeSequentialHint": "Ejecuta un juego hasta obtener sus cromos disponibles y luego pasa al siguiente.",
+  "cardModeCombinedHint": "Primero acumula 2 horas en varios juegos y después obtiene cromos de uno en uno.",
+  "refreshPlaytimeHourly": "Actualizar el tiempo de Steam cada hora",
+  "refreshPlaytimeHourlyHint": "Detiene las sesiones temporalmente, consulta el tiempo en Steam y las reanuda.",
+  "cardsTitle": "Cromos",
+  "cardsRefresh": "Consultar cromos",
+  "cardsStartAll": "Obtener todos los cromos",
+  "cardsStart": "Obtener cromos",
+  "cardsUnknown": "Aún no se han consultado los cromos",
+  "cardsEmpty": "No hay cromos",
+  "cardsPartial": "Los datos están incompletos. Una cantidad desconocida no se considera cero.",
+  "cardsFailed": "No se pudieron consultar los datos o ejecutar la sesión. Inténtalo de nuevo.",
+  "cardsPriority": "Los cromos tienen prioridad sobre las horas. Se conserva el progreso.",
+  "cardsFilter": "Con cromos disponibles",
+  "cardsRemaining": "Cromos restantes: {count}",
+  "@cardsRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cardsCheckedAt": "Comprobado: {time}",
+  "@cardsCheckedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "cardsQueued": "Juegos con cromos en cola: {count}",
+  "@cardsQueued": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "workPreparing": "Preparando sesiones",
+  "workGroup": "Cromos: sesiones simultáneas",
+  "workSingle": "Cromos: un juego",
+  "workChecking": "Consultando cromos restantes",
+  "workWaiting": "En espera / pausado",
+  "workSyncing": "Actualizando el tiempo de Steam",
+  "cardsStopDescription": "¿Detener la obtención de cromos y reanudar las sesiones de tiempo en espera?",
+  "cardsCount": "Cromos {count}",
+  "@cardsCount": {"placeholders": {"count": {"type": "int"}}}
 }

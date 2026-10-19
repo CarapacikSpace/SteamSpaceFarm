@@ -57,6 +57,10 @@ class AppsRepository({final Directory? libraryDirectory}) implements IAppsReposi
       'steamId': forgetAccount ? null : previous?['steamId'],
       'apps': <dynamic>[],
     });
+    final cards = File(p.join(_libraryFile.parent.path, 'cards.json'));
+    if (await cards.exists()) {
+      await cards.delete();
+    }
   });
 
   File get _libraryFile => File(p.join((libraryDirectory ?? AppPaths.library).path, 'catalog.json'));
@@ -77,13 +81,18 @@ class AppsRepository({final Directory? libraryDirectory}) implements IAppsReposi
             app['name'] is! String ||
             app['type'] is! int ||
             !SteamAppType.values.any((type) => type.index == app['type']) ||
-            ['playtimeMinutes', 'stopAtMinutes', 'lastPlayed'].any((key) => app[key] != null && app[key] is! int) ||
+            [
+              'playtimeMinutes',
+              'confirmedPlaytimeMinutes',
+              'stopAtMinutes',
+              'lastPlayed',
+            ].any((key) => app[key] != null && app[key] is! int) ||
             [
               'isFavorite',
               'isHidden',
               'isLibraryOwnershipManual',
             ].any((key) => app[key] != null && app[key] is! bool) ||
-            (app['icon'] != null && app['icon'] is! String)) {
+            ['icon', 'storeHeaderImage', 'libraryCapsuleImage'].any((key) => app[key] != null && app[key] is! String)) {
           throw const FormatException('Invalid catalog entry');
         }
       }

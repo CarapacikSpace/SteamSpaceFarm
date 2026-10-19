@@ -1,109 +1,86 @@
 <h1 align="center">SteamSpaceFarm</h1>
 
 <p align="center">
-  <img src="ssf_flutter/assets/logo/app_logo.png" alt="SteamSpaceFarm icon" width="160" height="160">
+  <img src="ssf_flutter/assets/logo/app_logo_transparent.png" alt="SteamSpaceFarm icon" width="160" height="160">
 </p>
 
 <p align="center">
-  <strong>Your Steam library. Your playtime goals. One place to manage it all.</strong>
+  <a href="https://github.com/CarapacikSpace/SteamSpaceFarm/releases/latest"><img src="https://img.shields.io/badge/Download-Windows_x64-75B022?style=for-the-badge&amp;logo=github&amp;logoColor=white" alt="Download the latest release"></a>
 </p>
 
-SteamSpaceFarm is a Windows desktop app for browsing your Steam library and managing simulated game sessions. Pick your apps, set time targets, and let SSF handle the queue through the Steam client.
+<p align="center">
+  <a href="https://github.com/CarapacikSpace/SteamSpaceFarm/releases/latest">Latest release</a> · <a href="README.ru.md">Русский</a> · <a href="CHANGELOG.md">Changelog</a> · <a href="https://github.com/CarapacikSpace/SteamSpaceFarm/issues">Report an issue</a>
+</p>
 
-[Download for Windows](https://github.com/CarapacikSpace/SteamSpaceFarm/releases/latest) · [Русский](README.ru.md) · [Changelog](CHANGELOG.md) · [Report an issue](https://github.com/CarapacikSpace/SteamSpaceFarm/issues)
+SteamSpaceFarm helps you manage your Steam library, collect trading cards, and reach playtime goals.
 
-![SteamSpaceFarm library on Windows](.github/screenshots/en.png)
+![SteamSpaceFarm library](.github/screenshots/en.png)
 
-## Connect Steam once
+## Features and convenience
 
-Sign in by scanning a QR code in the Steam mobile app or entering your account name and password. Steam Guard supports both mobile approval and verification codes when requested by Steam.
-
-SSF protects the saved session with Windows DPAPI and reuses it for later library updates. Steam settings show your current session status, a refresh button, and progress while the library is loading.
-
-## See your library clearly
-
-- Browse personal and Steam Family apps, including hidden and private entries returned for your account.
-- See names, recorded playtime, and last-played data when Steam provides them.
-- Find apps by name, AppID, or Steam link; filter by type, ownership, status, and playtime.
-- Sort in either direction by name, playtime, last played, or remaining time to a target.
-- Choose portrait covers, landscape capsules, store headers, or compact icons, with artwork fallbacks.
-
-You can add AppIDs manually, edit local app details, and set ownership overrides. Ownership distinguishes **Mine**, **Steam Family**, and an unknown value. Steam can expose additional apps through its account data, so totals may differ from its visible library counters.
-
-## Run sessions your way
-
-Launch individual apps or start a queue from marked apps, favorites, or the current catalog selection. The simultaneous session limit is configurable from 1 to 30.
-
-Set automatic stop targets, mark a playtime range, or aim for your preferred hour milestones. Sequential mode visits visible apps one at a time, with configurable durations, delays, and ordering. Bulk actions show the affected app count before confirmation.
-
-Normal batch starts and stops are spaced apart. **Stop all** immediately terminates SSF's game runners and library helper operations. By default, each simulated game uses a separate `ssf_game.exe`. The experimental SteamKit option in settings uses one authenticated helper connection for all active AppIDs, with independent deadlines and stop controls. It requires a saved Steam session and does not need the local Steam client.
-
-Sessions are emulated through the Steam API. Steam determines session acceptance and recorded playtime. Manual changes to playtime and ownership apply to SSF's local catalog.
-
-## Keep it comfortable
-
-- Favorites, per-app context menus, editable time targets, and quick AppID copying.
-- A fixed search and sorting bar, overlay filters, and keyboard-accessible menus.
-- English, Russian, and Spanish throughout the interface.
-- Separate controls for refreshing the library, signing out, and clearing the cache.
-
-Invisible status during games is enabled by default for both launch methods. SSF restores the previous status after the last game stops, while preserving manual status changes. SteamKit works without the desktop client; if the same account is open there, its status is updated too.
-
-Refresh on startup is enabled by default and can be disabled in the Library and sessions tab. It displays the cached library immediately and updates it in the background. Settings remain available while games run; library refresh and sign-out require stopping all games first. Leaving an active library update requires confirmation.
-
-Clearing the library cache keeps your Steam session ready for the next refresh. Signing out removes the saved session and clears the library cache.
+- **Your library in one place:** personal and Steam Family games, playtime, and last-played dates.
+- **Playtime goals:** run up to **31 apps at once** or use a sequential queue; set automatic stop targets for individual games or a selection.
+- **Trading cards:** check remaining drops and start farming. Card tasks take priority, then waiting playtime sessions resume.
+- **Quick navigation:** search by name, AppID, or Steam link; filters, sorting, favorites, and context menus.
+- **Your preferred look:** four card styles with current Steam artwork; English, Russian, Spanish, and Simplified Chinese.
+- **Sign in once:** QR code or account name and password, with Steam Guard support and a protected saved session.
 
 ## Get started
 
-1. Download the Windows x64 archive from [Releases](https://github.com/CarapacikSpace/SteamSpaceFarm/releases/latest).
-2. Extract the **entire archive** into a folder and run `ssf.exe`.
-3. Open Steam integration in settings, sign in, and load your library.
-4. For standard sessions, keep the Steam desktop client running on the same account. Experimental SteamKit sessions only require signing in to SSF.
+1. Download the latest **Windows x64** release using the button above.
+2. Extract the **entire archive** and run `ssf.exe`.
+3. Open **Settings → Steam integration**, sign in, and load your library.
 
-The Windows release includes both helper executables and their runtime components. Internet access is required for Steam sign-in, library updates, and artwork. Windows x64 is the supported release target.
+For cards, click **Check card drops** beside the library refresh button, then the green play button. **Cards N** shows the remaining count; click it to check again. The **With card drops** filter shows eligible games. Steam determines when cards drop and how playtime is recorded.
 
-## Your data
+## Settings
 
-Writable data lives in Flutter's application support directory. For the Windows release:
+Open the gear button at the top right. Changes save immediately.
 
-```text
-%APPDATA%\CarapacikSpace\SteamSpaceFarm\
-```
+**Appearance:** select the language and card style — Library capsule, Store header, Main capsule, or App icon.
 
-The library is readable JSON in `library/catalog.json`; the protected Steam session is in `steam/session.dpapi`. Settings and helper extraction files use the same application directory. Keep the complete release folder together: SSF reads executable files from the bundle.
+**Library and sessions:** all four switches are on by default. Previously saved choices are preserved.
 
-## Build from source
+| Setting | When enabled | When disabled |
+| --- | --- | --- |
+| Refresh library on startup | Show the cached library immediately and refresh it in the background. | Refresh manually when needed. |
+| Go invisible when starting games | Switch to Invisible and restore the previous status after all games stop. | SSF does not change your status. |
+| Run without the Steam client open | Use SteamKit with your SSF sign-in. | Use Steamworks; keep the local Steam client open on the same account. |
+| Update Steam playtime every hour | Briefly stop sessions, retrieve recorded time, and resume. | Skip hourly synchronization; session time continues to accumulate locally. |
 
-Install Flutter stable with its bundled Dart SDK, a .NET 10 SDK, and Visual Studio's **Desktop development with C++** workload with a Windows SDK. The C++ toolchain builds Flutter's Windows host and the NativeAOT game runner. Application logic is Dart and C#.
+**Card farming modes:** Fast (default) alternates group sessions with short individual runs; One at a time finishes one game before the next; Combined first builds up two hours across multiple games, then farms them individually.
 
-From the repository root, in PowerShell:
+**Steam integration:** sign in, refresh the library, clear its cache, or sign out. Clearing the cache removes local edits, favorites, and targets but keeps the saved sign-in; signing out clears both. Appearance stays accessible while games run or the library updates. Stop games before changing the launch method or Invisible option, refreshing the library, or signing out.
+
+<details>
+<summary>Local data and building from source</summary>
+
+Data is stored in `%APPDATA%\CarapacikSpace\SteamSpaceFarm\`: `library/catalog.json`, `library/cards.json`, and the DPAPI-protected `steam/session.dpapi`.
+
+Build requirements: Flutter stable with the Dart SDK specified in `ssf_flutter/pubspec.yaml`, .NET 10 SDK, and Visual Studio's **Desktop development with C++** workload with a Windows SDK. From the repository root in PowerShell:
 
 ```powershell
 ./tools/windows/build_steam_game.ps1
 ./tools/windows/build_steam_library_helper.ps1
 cd ssf_flutter
 flutter pub get
-cd ..
-./tools/windows/generate_localizations.ps1
-cd ssf_flutter
+flutter gen-l10n
+flutter analyze
+flutter test
 flutter build windows --release
 ```
 
-The bundle is written to `ssf_flutter/build/windows/x64/runner/Release/`. Build both helpers first: Flutter's CMake configuration copies their fresh outputs from the C# projects. Localization generation uses Flutter’s built-in `flutter gen-l10n` and `ssf_flutter/l10n.yaml`. ARB translations for English, Russian, and Spanish are in `lib/src/localization/translations/`.
+The complete bundle is in `ssf_flutter/build/windows/x64/runner/Release/`. Build both helpers before Flutter. ARB translations are in `ssf_flutter/lib/src/localization/translations/`.
 
-| Directory | Purpose |
-| --- | --- |
-| `ssf_flutter/` | Catalog, settings, sign-in UI, and session queues |
-| `ssf_steam_helper/` | SteamKit authentication and library collection; self-contained .NET executable |
-| `ssf_game/` | One Steam app session per NativeAOT process, using the Steam API DLL directly |
-| `tools/windows/` | Build and localization scripts used by CI |
-| `redistributable_bin/` | Steamworks redistributables |
-| `docs_new/` | Architecture notes and implementation reports |
+Offline helper checks, from the repository root:
 
-Flutter communicates with child processes using newline-delimited JSON over standard input/output.
+```powershell
+dotnet run --project ssf_game/RunnerChecks/RunnerChecks.csproj -c Release
+dotnet run --project ssf_steam_helper/ssf_steam_helper.csproj -c Release -- --synthetic
+```
 
-## Contribute
+</details>
 
-[Open an issue](https://github.com/CarapacikSpace/SteamSpaceFarm/issues) for a bug or feature request. Include the SSF version, Windows version, steps to reproduce, and the visible error text. Keep account credentials and session files private. Pull requests are welcome; user-facing text should be localized in English, Russian, and Spanish.
+## Feedback
 
-Join our [Discord server](https://discord.gg/Wy78VE6mdq) to discuss ideas, ask questions, and share feedback.
+[Report a bug or suggest a feature](https://github.com/CarapacikSpace/SteamSpaceFarm/issues), or join our [Discord server](https://discord.gg/Wy78VE6mdq). Include the app version and steps to reproduce; keep credentials and session files private.

@@ -13,6 +13,7 @@ class const CatalogAppCard({
   required final bool isRunning,
   required final VoidCallback onTap,
   required final VoidCallback onMenuRequested,
+  final int? remainingCards,
   super.key,
 }) extends StatelessWidget {
   @override
@@ -31,7 +32,8 @@ class const CatalogAppCard({
       label: _ownershipLabel(GeneratedLocalizations.of(context), app.libraryOwnership),
       ownership: _ownershipVisual(app.libraryOwnership),
       favorite: app.isFavorite,
-      markedTime: cardType == SteamAppCardType.appIcon ? null : markedTime,
+      remainingCards: remainingCards,
+      markedTime: markedTime,
     );
 
     return switch (cardType) {
@@ -84,7 +86,6 @@ class const CatalogAppCard({
         marker: marker,
         content: _IconDetails(app: app, isRunning: isRunning),
         playtimeLabel: playtime,
-        markedTimeLabel: markedTime,
         onPressed: onTap,
         onMenuPressed: onMenuRequested,
       ),

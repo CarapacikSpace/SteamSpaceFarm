@@ -86,6 +86,7 @@ class const SteamClearButton({required final VoidCallback onPressed, final bool 
 
 class _SteamClearButtonState() extends State<SteamClearButton> {
   bool _hovered = false;
+
   @override
   Widget build(BuildContext context) => MouseRegion(
     onEnter: (_) => setState(() => _hovered = true),

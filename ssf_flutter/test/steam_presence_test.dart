@@ -77,6 +77,7 @@ void main() {
 
 class FakePresenceLease({final Future<void>? restoring}) implements SteamPresenceLease {
   int closed = 0;
+
   @override
   Future<void> close() async {
     closed++;

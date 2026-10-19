@@ -2,6 +2,22 @@
 
 All notable changes to SteamSpaceFarm are documented here.
 
+## 2.2
+
+### Added
+
+- Add card farming with three modes: Fast, One by one, and Combined.
+- Add settings for hourly playtime updates and card farming mode selection.
+- Add Simplified Chinese localization.
+
+### Changed
+
+- Enable launches without the local Steam client by default and remove the experimental label.
+
+### Fixed
+
+- Use up-to-date artwork URLs for apps from Steam metadata.
+
 ## 2.1
 
 ### Added

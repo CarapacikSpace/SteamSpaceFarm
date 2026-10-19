@@ -63,6 +63,15 @@ public sealed class SteamLibraryClient : IDisposable
 
     public ulong SteamId => _steamId;
 
+    internal async Task<string> GetWebAccessTokenAsync(SessionSecret secret, CancellationToken token)
+    {
+        var result = await _client.Authentication.GenerateAccessTokenForAppAsync(
+            new SteamID(_steamId), secret.RefreshToken, allowRenewal: false).WaitAsync(token).ConfigureAwait(false);
+        return result.AccessToken;
+    }
+
+    internal Task<PlaytimeData> GetPlaytimeAsync(CancellationToken token) => GetHoursAsync(token);
+
     public void BeginPlayingSession(bool invisible = false)
     {
         // Library collection stays silent. A playing connection must announce its
@@ -114,7 +123,7 @@ public sealed class SteamLibraryClient : IDisposable
         var generation = operation.BeginQr();
         var qr = await _client.Authentication.BeginAuthSessionViaQRAsync(new AuthSessionDetails
         {
-            DeviceFriendlyName = "SteamSpaceFarm Steam Library Helper",
+            DeviceFriendlyName = "SteamSpaceFarm",
             IsPersistentSession = true,
             Authenticator = new ConsoleAuthenticator(_authInput, cancellationToken),
         }).WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -161,7 +170,7 @@ public sealed class SteamLibraryClient : IDisposable
         {
             Username = username,
             Password = password,
-            DeviceFriendlyName = "SteamSpaceFarm Steam Library Helper",
+            DeviceFriendlyName = "SteamSpaceFarm",
             IsPersistentSession = true,
             Authenticator = new ConsoleAuthenticator(_authInput, cancellationToken),
         }).WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -194,6 +203,7 @@ public sealed class SteamLibraryClient : IDisposable
             Username = accountName,
             AccessToken = refreshToken,
             ShouldRememberPassword = true,
+            LoginID = (uint)System.Security.Cryptography.RandomNumberGenerator.GetInt32(1, int.MaxValue),
         });
 
         var callback = await _loggedOn.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -270,7 +280,7 @@ public sealed class SteamLibraryClient : IDisposable
             });
 
         progress?.Invoke("merging");
-        return LibraryMerger.Merge(evidence with { Types = metadata.Types, LastPlayed = hours.LastPlayed });
+        return LibraryMerger.Merge(evidence with { Types = metadata.Types, LastPlayed = hours.LastPlayed, Artwork = metadata.Artwork });
     }
 
     private async Task<SourceData<uint>> GetPersonalAppsAsync(CancellationToken cancellationToken)
@@ -545,14 +555,15 @@ public sealed class SteamLibraryClient : IDisposable
         catch (Exception ex) { return PlaytimeData.Failed($"Played history: {SafeError(ex)}"); }
     }
 
-    private async Task<(IReadOnlyDictionary<uint, string?> Values, bool Complete, string? Error, IReadOnlyDictionary<uint, string?> Types)> GetMetadataAsync(
+    private async Task<(IReadOnlyDictionary<uint, string?> Values, bool Complete, string? Error, IReadOnlyDictionary<uint, string?> Types, IReadOnlyDictionary<uint, SteamAppArtwork> Artwork)> GetMetadataAsync(
         IReadOnlyCollection<uint> appIds,
         CancellationToken cancellationToken)
     {
         var names = new Dictionary<uint, string?>();
         var types = new Dictionary<uint, string?>();
+        var artwork = new Dictionary<uint, SteamAppArtwork>();
         if (appIds.Count == 0)
-            return (names, true, null, types);
+            return (names, true, null, types, artwork);
 
         try
         {
@@ -596,6 +607,8 @@ public sealed class SteamLibraryClient : IDisposable
                     }
                     var name = pair.Value.KeyValues?["common"]?["name"]?.AsString();
                     types[(uint)pair.Value.ID] = pair.Value.KeyValues?["common"]?["type"]?.AsString();
+                    if (pair.Value.KeyValues is { } values)
+                        artwork[(uint)pair.Value.ID] = SteamAppArtwork.Read((uint)pair.Value.ID, values["common"]);
                     if (string.IsNullOrWhiteSpace(name))
                         missingRequestedIds.Add(pair.Key);
                     names[(uint)pair.Value.ID] = string.IsNullOrWhiteSpace(name) ? null : name;
@@ -610,7 +623,7 @@ public sealed class SteamLibraryClient : IDisposable
                 unknownApps,
                 !incompleteResponse);
             return (names, assessment.Complete,
-                string.IsNullOrWhiteSpace(assessment.Detail) ? null : assessment.Detail, types);
+                string.IsNullOrWhiteSpace(assessment.Detail) ? null : assessment.Detail, types, artwork);
         }
         catch (OperationCanceledException)
         {
@@ -618,7 +631,7 @@ public sealed class SteamLibraryClient : IDisposable
         }
         catch (Exception ex)
         {
-            return (names, false, SafeError(ex), types);
+            return (names, false, SafeError(ex), types, artwork);
         }
     }
 

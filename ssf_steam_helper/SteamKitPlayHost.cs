@@ -12,7 +12,7 @@ internal static class SteamKitPlayHost
 {
     public static async Task<int> RunAsync(string[] args)
     {
-        if ((args.Length != 5 && (args.Length != 6 || args[5] != "--invisible")) || args[1] != "--data-dir" || args[3] != "--expected-steam-id"
+        if (args.Length < 5 || args.Length > 7 || args.Skip(5).Any(arg => arg is not ("--invisible" or "--data-only")) || args[1] != "--data-dir" || args[3] != "--expected-steam-id"
             || !ulong.TryParse(args[4], out var expectedId) || expectedId == 0)
             return 2;
         using var lifetime = new CancellationTokenSource();
@@ -22,6 +22,10 @@ internal static class SteamKitPlayHost
         var input = ReadInputAsync(commands.Writer, lifetime);
         using var client = new SteamLibraryClient();
         var games = new SteamKitGames();
+        bool playingStarted = false;
+        using var dataLifetime = CancellationTokenSource.CreateLinkedTokenSource(token);
+        CancellationTokenSource? dataCancellation = null;
+        Task dataOperation = Task.CompletedTask;
         try
         {
             var secret = new DpapiSessionStore(Path.Combine(args[2], "session.dpapi")).TryLoad()
@@ -30,7 +34,7 @@ internal static class SteamKitPlayHost
             await client.WaitConnectedAsync(token).ConfigureAwait(false);
             await client.AuthenticateStoredAsync(secret, token).ConfigureAwait(false);
             if (client.SteamId != expectedId) throw new InvalidOperationException("account_mismatch");
-            client.BeginPlayingSession(invisible: args.Length == 6);
+            using var cards = new CardDropsClient(client, secret);
             lifetime.CancelAfter(Timeout.InfiniteTimeSpan);
             Emit("session_ready", "", 0, expectedId);
             var readable = commands.Reader.WaitToReadAsync(token).AsTask();
@@ -45,8 +49,34 @@ internal static class SteamKitPlayHost
                     while (commands.Reader.TryRead(out var line))
                     {
                         using var json = JsonDocument.Parse(line);
+                        if (json.RootElement.TryGetProperty("command", out var cancelKind) && cancelKind.GetString() == "cancel_data")
+                        { dataCancellation?.Cancel(); continue; }
+                        if (json.RootElement.TryGetProperty("command", out var kind) && kind.GetString() is "cards" or "playtime")
+                        {
+                            if (json.RootElement.GetProperty("v").GetInt32() != 1) throw new FormatException("version");
+                            var requestId = json.RootElement.GetProperty("requestId").GetString() ?? "";
+                            if (requestId.Length is 0 or > 64) throw new FormatException("request");
+                            var ids = json.RootElement.TryGetProperty("appIds", out var values)
+                                ? values.EnumerateArray().Select(value => value.GetUInt32()).ToArray() : [];
+                            if (ids.Length > SteamKitGames.MaximumConcurrentGames || ids.Any(id => id == 0)) throw new FormatException("app_ids");
+                            if (!dataOperation.IsCompleted)
+                                EmitData(new(1, "data", expectedId.ToString(), requestId, Error: "busy"));
+                            else
+                            {
+                                dataCancellation?.Dispose();
+                                dataCancellation = CancellationTokenSource.CreateLinkedTokenSource(dataLifetime.Token);
+                                dataOperation = QueryAsync(client, cards, kind.GetString()!, requestId, ids, dataCancellation.Token);
+                            }
+                            continue;
+                        }
                         var command = SteamKitCommand.Parse(json.RootElement);
+                        if (args.Contains("--data-only") && command.Command == "start") throw new FormatException("data_only");
                         if (command.Command == "stop_all") return 0;
+                        if (command.Command == "start" && !playingStarted)
+                        {
+                            client.BeginPlayingSession(invisible: args.Contains("--invisible"));
+                            playingStarted = true;
+                        }
                         var changed = games.Apply(command);
                         // Send the complete remaining set before acknowledging a change.
                         client.SetPlayingGames(games.AppIds);
@@ -71,10 +101,45 @@ internal static class SteamKitPlayHost
         }
         finally
         {
-            try { client.SetPlayingGames(Array.Empty<uint>()); } catch { }
+            dataLifetime.Cancel();
+            try { await dataOperation.ConfigureAwait(false); } catch { }
+            dataCancellation?.Dispose();
+            if (playingStarted) { try { client.SetPlayingGames(Array.Empty<uint>()); } catch { } }
             lifetime.Cancel();
             try { await input.WaitAsync(TimeSpan.FromSeconds(1)).ConfigureAwait(false); } catch { }
         }
+    }
+
+    private static async Task QueryAsync(SteamLibraryClient client, CardDropsClient cards, string kind,
+        string requestId, uint[] ids, CancellationToken lifetime)
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(lifetime);
+        timeout.CancelAfter(TimeSpan.FromMinutes(5));
+        try
+        {
+            if (kind == "cards")
+                EmitData(new(1, "data", client.SteamId.ToString(), requestId,
+                    Cards: await cards.ReadAsync(ids, timeout.Token).ConfigureAwait(false)));
+            else
+            {
+                var hours = await client.GetPlaytimeAsync(timeout.Token).ConfigureAwait(false);
+                if (hours.Values.Count == 0) throw new IOException("playtime_unavailable");
+                EmitData(new(1, "data", client.SteamId.ToString(), requestId,
+                    Minutes: hours.Values.Where(pair => ids.Length == 0 || ids.Contains(pair.Key))
+                        .ToDictionary(pair => pair.Key, pair => (int)Math.Round(pair.Value * 60))));
+            }
+        }
+        catch (Exception error)
+        {
+            if (!lifetime.IsCancellationRequested)
+                EmitData(new(1, "data", client.SteamId.ToString(), requestId, Error: error.GetType().Name));
+        }
+    }
+
+    private static void EmitData(SessionDataEvent value)
+    {
+        Console.Out.WriteLine(JsonSerializer.Serialize(value, SessionDataJsonContext.Default.SessionDataEvent));
+        Console.Out.Flush();
     }
 
     private static void Emit(string kind, string runId, uint appId, ulong steamId)
@@ -135,6 +200,20 @@ internal static class SteamKitPlayHost
         games.Apply(second with { Command = "update_deadline", RunSeconds = 1 });
         games.Apply(second with { Command = "update_deadline", RunSeconds = null });
         if (games.Expire().Count != 0) throw new InvalidOperationException("SteamKit deadline removal failed");
+        var full = new SteamKitGames();
+        for (uint id = 1; id <= 31; id++)
+            full.Apply(new SteamKitCommand("start", $"limit-{id}", id, null));
+        if (full.AppIds.Count() != 31) throw new InvalidOperationException("SteamKit 31-game capacity failed");
+        try
+        {
+            full.Apply(new SteamKitCommand("start", "limit-32", 32, null));
+            throw new InvalidOperationException("SteamKit exceeded 31-game limit");
+        }
+        catch (FormatException) { }
+        full.Apply(new SteamKitCommand("stop", "limit-1", 1, null));
+        full.Apply(new SteamKitCommand("start", "limit-32", 32, null));
+        if (full.AppIds.Count() != 31 || !full.AppIds.Contains(32u))
+            throw new InvalidOperationException("SteamKit capacity was not released");
         using var invalid = JsonDocument.Parse("{\"v\":1,\"command\":\"start\",\"runId\":\"bad\",\"appId\":0}");
         try { SteamKitCommand.Parse(invalid.RootElement); throw new InvalidOperationException("Invalid AppID accepted"); }
         catch (FormatException) { }
@@ -161,6 +240,7 @@ internal sealed record SteamKitCommand(string Command, string RunId, uint AppId,
 
 internal sealed class SteamKitGames
 {
+    public const int MaximumConcurrentGames = 31;
     private readonly Dictionary<string, (uint AppId, TimeSpan? Deadline)> _games = new();
     private readonly Stopwatch _clock = Stopwatch.StartNew();
     public IEnumerable<uint> AppIds => _games.Values.Select(game => game.AppId);
@@ -169,7 +249,7 @@ internal sealed class SteamKitGames
         var deadline = command.RunSeconds is long seconds ? _clock.Elapsed + TimeSpan.FromSeconds(seconds) : (TimeSpan?)null;
         if (command.Command == "start")
         {
-            if (_games.Count >= 30 || _games.ContainsKey(command.RunId) || AppIds.Contains(command.AppId))
+            if (_games.Count >= MaximumConcurrentGames || _games.ContainsKey(command.RunId) || AppIds.Contains(command.AppId))
                 throw new FormatException("duplicate_or_limit");
             _games.Add(command.RunId, (command.AppId, deadline));
             return "ready";

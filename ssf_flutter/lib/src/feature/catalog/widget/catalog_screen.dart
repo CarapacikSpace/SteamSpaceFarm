@@ -20,6 +20,8 @@ import 'package:ssf_flutter/src/feature/game_execution/logic/beautiful_hours.dar
 import 'package:ssf_flutter/src/feature/game_execution/logic/game_execution_controller.dart';
 import 'package:ssf_flutter/src/feature/game_execution/model/beautiful_hours_configuration.dart';
 import 'package:ssf_flutter/src/feature/game_execution/model/bulk_actions.dart';
+import 'package:ssf_flutter/src/feature/game_execution/model/session_limits.dart';
+import 'package:ssf_flutter/src/feature/game_execution/widget/card_farming_panel.dart';
 import 'package:ssf_flutter/src/feature/game_execution/widget/game_execution_panel.dart';
 import 'package:ssf_flutter/src/feature/settings/model/app_settings.dart';
 import 'package:ssf_flutter/src/feature/settings/widget/settings_screen.dart';
@@ -57,6 +59,7 @@ class const CatalogScreen({
 
 class _CatalogScreenState() extends State<CatalogScreen> {
   SteamLibraryController? _startupLibrary;
+
   bool get _refreshing => (_startupLibrary?.sync.busy ?? false) || (_startupLibrary?.saving ?? false);
   int _startupNotice = 0;
 
@@ -70,7 +73,7 @@ class _CatalogScreenState() extends State<CatalogScreen> {
   _CatalogSort _sort = _CatalogSort.playtime;
   late SteamAppCardType _cardType;
   bool _useHours = true;
-  int _concurrentLimit = 30;
+  int _concurrentLimit = defaultConcurrentGames;
   bool _ascending = false;
   bool _bulkActionBusy = false;
   BeautifulHoursConfiguration _beautifulHoursConfiguration = BeautifulHoursConfiguration.defaults;
@@ -91,6 +94,8 @@ class _CatalogScreenState() extends State<CatalogScreen> {
       onUserError: _showMessage,
       localizations: () => GeneratedLocalizations.of(context),
     );
+    _executionController.work.setMode(widget.settings.cardFarmingMode);
+    _executionController.work.refreshHourly = widget.settings.refreshPlaytimeHourly;
     _screenListenable = Listenable.merge([_catalogController, _executionController]);
     _searchFocusNode.addListener(_handleSearchFocusChanged);
     widget.steamGameService.experimentalSteamKit = widget.settings.experimentalSteamKit;
@@ -100,6 +105,7 @@ class _CatalogScreenState() extends State<CatalogScreen> {
 
   Future<void> _initializeCatalog() async {
     await _catalogController.loadCache();
+    await _executionController.work.loadCache();
     if (!mounted || !widget.settings.refreshOnStartup || !_catalogController.hasSession) {
       return;
     }
@@ -108,9 +114,14 @@ class _CatalogScreenState() extends State<CatalogScreen> {
     _startupLibrary = SteamLibraryController(
       sync: sync,
       repository: widget.appsRepository,
-      onLibraryUpdated: _catalogController.loadCache,
+      onLibraryUpdated: _reloadLibrary,
     )..addListener(_startupChanged);
     await sync.start(SteamSignInMethod.session);
+  }
+
+  Future<void> _reloadLibrary() async {
+    await _catalogController.loadCache();
+    await _executionController.work.loadCache();
   }
 
   void _startupChanged() {
@@ -136,6 +147,8 @@ class _CatalogScreenState() extends State<CatalogScreen> {
     super.didUpdateWidget(oldWidget);
     widget.steamGameService.experimentalSteamKit = widget.settings.experimentalSteamKit;
     widget.steamGameService.invisibleWhilePlaying = widget.settings.invisibleWhilePlaying;
+    _executionController.work.setMode(widget.settings.cardFarmingMode);
+    _executionController.work.refreshHourly = widget.settings.refreshPlaytimeHourly;
     if (oldWidget.settings.cardType != widget.settings.cardType) {
       _cardType = widget.settings.cardType;
     }
@@ -162,6 +175,7 @@ class _CatalogScreenState() extends State<CatalogScreen> {
         CatalogStatus.all => true,
         CatalogStatus.running => _executionController.isRunning(app.appId),
         CatalogStatus.marked => app.stopAtMinutes != null && (app.playtimeMinutes ?? 0) < app.stopAtMinutes!,
+        CatalogStatus.cards => (_executionController.work.drops[app.appId]?.remaining ?? 0) > 0,
         CatalogStatus.hidden => app.isHidden,
         CatalogStatus.favorite => app.isFavorite,
       };
@@ -230,7 +244,7 @@ class _CatalogScreenState() extends State<CatalogScreen> {
       _showMessage(GeneratedLocalizations.of(context).libraryRefreshInProgress);
       return;
     }
-    if (_executionController.isQueueActive) {
+    if (_executionController.isBatchActive || _executionController.isSequentialActive) {
       await _confirmStopQueue();
       return;
     }
@@ -273,7 +287,9 @@ class _CatalogScreenState() extends State<CatalogScreen> {
   Future<void> _confirmStopQueue() async {
     final bool confirmed = await _showConfirmation(
       title: GeneratedLocalizations.of(context).stopQueueTitle,
-      message: _executionController.isSequentialActive
+      message: _executionController.work.active
+          ? GeneratedLocalizations.of(context).cardsStopDescription
+          : _executionController.isSequentialActive
           ? GeneratedLocalizations.of(context).stopSequentialQueueDescription(_executionController.queueRemaining)
           : GeneratedLocalizations.of(context).stopBatchQueueDescription,
       confirmText: GeneratedLocalizations.of(context).stopQueue,
@@ -407,7 +423,7 @@ class _CatalogScreenState() extends State<CatalogScreen> {
         builder: (_) => SettingsScreen(
           processManager: widget.steamGameService.processManager,
           appsRepository: widget.appsRepository,
-          onLibraryUpdated: _catalogController.loadCache,
+          onLibraryUpdated: _reloadLibrary,
           openSteam: steam,
           refreshSteamLibrary: refreshLibrary,
           backgroundLibrary: _startupLibrary,
@@ -576,30 +592,29 @@ class _CatalogScreenState() extends State<CatalogScreen> {
       isBusy: isBusy,
       onActionSelected: (action) => unawaited(_performAppAction(app, action)),
       childBuilder: (openMenu) {
-        final bool touchLayout = MediaQuery.sizeOf(context).width < 600;
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            IgnorePointer(
-              ignoring: isBusy,
-              child: CatalogAppCard(
-                app: app,
-                cardType: _cardType,
-                useHours: _useHours,
-                isRunning: isRunning,
-                onTap: () => unawaited(_toggleAppExecution(app)),
-                onMenuRequested: touchLayout ? () => _showTouchAppActions(app) : openMenu,
-              ),
-            ),
-          ],
+        final bool touchLayout = MediaQuery.sizeOf(context).width < SteamLayoutBreakpoints.medium;
+        return IgnorePointer(
+          ignoring: isBusy,
+          child: CatalogAppCard(
+            app: app,
+            cardType: _cardType,
+            useHours: _useHours,
+            isRunning: isRunning,
+            remainingCards: _executionController.work.drops[app.appId]?.remaining,
+            onTap: () => unawaited(_toggleAppExecution(app)),
+            onMenuRequested: touchLayout ? () => _showTouchAppActions(app) : openMenu,
+          ),
         );
       },
     );
   }
 
+  Widget _cardActions() =>
+      CardFarmingActions(work: _executionController.work, disabled: _refreshing || !_catalogController.hasSession);
+
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: _executionController,
+    listenable: _screenListenable,
     builder: (context, _) => Scaffold(
       appBar: AppBar(
         titleSpacing: 20,
@@ -625,7 +640,24 @@ class _CatalogScreenState() extends State<CatalogScreen> {
             );
           },
         ),
+        bottom: SteamLayoutBreakpoints.wrapCardActions(MediaQuery.sizeOf(context).width)
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(48),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  child: Align(alignment: Alignment.centerRight, child: _cardActions()),
+                ),
+              )
+            : null,
         actions: [
+          if (!SteamLayoutBreakpoints.wrapCardActions(MediaQuery.sizeOf(context).width)) ...[
+            ConstrainedBox(
+              // Reserve the logo, gutters and three fixed header buttons.
+              constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width - 212),
+              child: _cardActions(),
+            ),
+            const SizedBox(width: 4),
+          ],
           _HeaderActionButton(
             tooltip: GeneratedLocalizations.of(context).refreshLibrary,
             onPressed: _refreshing || widget.steamGameService.processManager.hasActiveGames
@@ -664,7 +696,7 @@ class _CatalogScreenState() extends State<CatalogScreen> {
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final bool compact = constraints.maxWidth < 600;
+                    final bool compact = constraints.maxWidth < SteamLayoutBreakpoints.medium;
                     const double horizontalPadding = 20;
                     final List<LocalApp> apps = _visibleApps;
                     final Widget cards = CustomScrollView(
@@ -824,12 +856,18 @@ class _CatalogScreenState() extends State<CatalogScreen> {
           child: Text(GeneratedLocalizations.of(context).setTargets),
         ),
         SteamButton(
-          variant: _executionController.isQueueActive ? SteamButtonVariant.primary : SteamButtonVariant.run,
+          variant: (_executionController.isBatchActive || _executionController.isSequentialActive)
+              ? SteamButtonVariant.primary
+              : SteamButtonVariant.run,
           height: SteamUiMetrics.catalogControlHeight,
           onPressed: _bulkActionBusy || _executionController.isBusy ? null : _showBulkLaunch,
-          icon: Icon(_executionController.isQueueActive ? Icons.tune : Icons.play_arrow),
+          icon: Icon(
+            (_executionController.isBatchActive || _executionController.isSequentialActive)
+                ? Icons.tune
+                : Icons.play_arrow,
+          ),
           child: Text(
-            _executionController.isQueueActive
+            (_executionController.isBatchActive || _executionController.isSequentialActive)
                 ? GeneratedLocalizations.of(context).manage
                 : GeneratedLocalizations.of(context).launchOptionsAction,
           ),

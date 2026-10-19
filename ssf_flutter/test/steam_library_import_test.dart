@@ -70,6 +70,43 @@ void main() {
     expect(await repository.getCatalogSteamId(), account);
   });
 
+  test('refresh replaces artwork while partial metadata and user edits preserve it', () async {
+    SteamLibrarySnapshot artworkSnapshot(String revision) => SteamLibrarySnapshot.fromJson({
+      'schemaVersion': 1,
+      'steamId': account,
+      'partial': false,
+      'apps': [
+        {
+          'appId': 480,
+          'name': 'Synthetic',
+          'type': 'game',
+          'storeHeaderImage':
+              'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/480/$revision/header.jpg',
+          'libraryCapsuleImage':
+              'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/480/$revision/library_capsule_2x.jpg',
+        },
+      ],
+    });
+
+    await repository.importSteamLibrary(snapshot());
+    final LocalApp legacy = (await repository.getAppsFromCache()).single;
+    expect(legacy.storeHeaderUrl, endsWith('/480/header.jpg'));
+    expect(legacy.libraryCapsuleUrl, endsWith('/480/library_600x900.jpg'));
+    await repository.importSteamLibrary(artworkSnapshot('first'));
+    await repository.importSteamLibrary(artworkSnapshot('second'));
+    final LocalApp current = (await repository.getAppsFromCache()).single;
+    expect(current.storeHeaderImageUrls.first, contains('/second/header.jpg'));
+    expect(current.libraryCapsuleImageUrls.first, contains('/second/library_capsule_2x.jpg'));
+    expect(current.storeHeaderImageUrls.last, legacy.storeHeaderUrl);
+    expect(current.libraryCapsuleImageUrls, contains(legacy.libraryCapsuleUrl));
+    await repository.updateApp(current.copyWith(isFavorite: true, playtimeMinutes: 200));
+    await repository.importSteamLibrary(snapshot(hours: null));
+    final LocalApp retained = (await repository.getAppsFromCache()).single;
+    expect(retained.storeHeaderImage, current.storeHeaderImage);
+    expect(retained.libraryCapsuleImage, current.libraryCapsuleImage);
+    expect(retained.isFavorite, isTrue);
+  });
+
   test('only catalog.json is used and unrelated old files remain untouched', () async {
     final oldFile = File(p.join(directory.path, 'apps.json'));
     await oldFile.writeAsString('obsolete format');

@@ -75,6 +75,50 @@ void main() {
     expect(session.closed, isTrue);
   });
 
+  test('technical stops keep the shared session alive and correlate card responses', () async {
+    session.keepAlive = true;
+    final Future<SteamKitGameConnection> pending = session.launch(570, 'cards', null);
+    await tick();
+    emit(process, 'ready', 'cards', 570);
+    final SteamKitGameConnection game = await pending;
+    final Future<void> stopping = game.stop();
+    await tick();
+    emit(process, 'stopped', 'cards', 570);
+    await stopping;
+    expect(session.closed, isFalse);
+    expect(process.commands.any((value) => value['command'] == 'stop_all'), isFalse);
+    final Future<Map<String, dynamic>> data = session.query('cards', appIds: [570]);
+    await tick();
+    final Map<String, dynamic> request = process.commands.last;
+    process.output.add(
+      utf8.encode(
+        '${jsonEncode({
+          'v': 1,
+          'event': 'data',
+          'steamId': account,
+          'requestId': request['requestId'],
+          'cards': {'complete': true},
+        })}\n',
+      ),
+    );
+    expect((await data)['cards'], {'complete': true});
+  });
+
+  test('cancelling a data request does not terminate an active SteamKit game', () async {
+    final Future<SteamKitGameConnection> pending = session.launch(570, 'cards', null);
+    await tick();
+    emit(process, 'ready', 'cards', 570);
+    final SteamKitGameConnection game = await pending;
+    final Future<Map<String, dynamic>> data = session.query('cards');
+    final Future<void> failed = expectLater(data, throwsException);
+    await tick();
+    session.cancelQueries();
+    await failed;
+    expect(game.exited, isFalse);
+    expect(session.closed, isFalse);
+    expect(process.commands.last['command'], 'cancel_data');
+  });
+
   for (final protocolFailure in [false, true]) {
     test(
       'unexpected ${protocolFailure ? "protocol failure" : "clean helper exit"} stays a failure after ready',

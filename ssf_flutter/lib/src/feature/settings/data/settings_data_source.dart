@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ssf_flutter/src/feature/catalog/model/card_type.dart';
+import 'package:ssf_flutter/src/feature/game_execution/model/card_farming_mode.dart';
 import 'package:ssf_flutter/src/feature/settings/model/app_settings.dart';
 import 'package:ssf_flutter/src/localization/localization.dart';
 import 'package:ssf_flutter/src/storage/shared_preferences_column.dart';
@@ -44,6 +45,8 @@ final class AppSettingsColumn({required super.sharedPreferences, required super.
     final String? countryCode = await _localeCountryCode.read();
 
     final String? cardTypeName = await _cardType.read();
+    final String? mode = await sharedPreferences.getString('$key.card_farming_mode');
+    final String? hourly = await sharedPreferences.getString('$key.refresh_playtime_hourly');
     final String? refresh = await sharedPreferences.getString('$key.refresh_on_startup');
     final String? steamKit = await sharedPreferences.getString('$key.experimental_steamkit');
     final String? offline = await sharedPreferences.getString('$key.invisible_while_playing');
@@ -53,7 +56,9 @@ final class AppSettingsColumn({required super.sharedPreferences, required super.
         cardTypeName == null &&
         refresh == null &&
         steamKit == null &&
-        offline == null) {
+        offline == null &&
+        mode == null &&
+        hourly == null) {
       return null;
     }
 
@@ -65,10 +70,12 @@ final class AppSettingsColumn({required super.sharedPreferences, required super.
     final SteamAppCardType? cardType = _parseCardType(cardTypeName);
 
     return AppSettings(
+      cardFarmingMode: CardFarmingMode.values.firstWhereOrNull((value) => value.name == mode) ?? CardFarmingMode.fast,
+      refreshPlaytimeHourly: hourly != 'false',
       locale: appLocale ?? Localization.deviceLocale,
       cardType: cardType ?? SteamAppCardType.libraryCapsule,
       refreshOnStartup: refresh != 'false',
-      experimentalSteamKit: steamKit == 'true',
+      experimentalSteamKit: steamKit != 'false',
       invisibleWhilePlaying: offline != 'false',
     );
   }
@@ -80,6 +87,8 @@ final class AppSettingsColumn({required super.sharedPreferences, required super.
       _localeCountryCode.set(value.locale.countryCode ?? ''),
     ).wait;
 
+    await sharedPreferences.setString('$key.card_farming_mode', value.cardFarmingMode.name);
+    await sharedPreferences.setString('$key.refresh_playtime_hourly', '${value.refreshPlaytimeHourly}');
     await _cardType.set(value.cardType.name);
     await sharedPreferences.setString('$key.refresh_on_startup', '${value.refreshOnStartup}');
     await sharedPreferences.setString('$key.experimental_steamkit', '${value.experimentalSteamKit}');

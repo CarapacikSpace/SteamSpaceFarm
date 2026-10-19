@@ -7,6 +7,7 @@ import 'package:ssf_flutter/src/feature/catalog/model/time_filter_type.dart';
 import 'package:ssf_flutter/src/feature/game_execution/logic/beautiful_hours.dart';
 import 'package:ssf_flutter/src/feature/game_execution/model/beautiful_hours_configuration.dart';
 import 'package:ssf_flutter/src/feature/game_execution/model/bulk_actions.dart';
+import 'package:ssf_flutter/src/feature/game_execution/model/session_limits.dart';
 import 'package:ssf_flutter/src/localization/generated/l10n.dart';
 import 'package:ssf_flutter/src/ui_kit/controls/steam_text_field.dart';
 import 'package:ssf_flutter/src/ui_kit/steam_ui_kit.dart';
@@ -200,7 +201,7 @@ class _BulkLaunchFormState() extends State<BulkLaunchForm> {
               SteamDropdown<int>(
                 width: 72,
                 maxMenuHeight: 288,
-                items: [for (var value = 1; value <= 30; value++) value],
+                items: [for (var value = minimumConcurrentGames; value <= maximumConcurrentGames; value++) value],
                 value: _concurrentLimit,
                 labelBuilder: (value) => '$value',
                 onChanged: (value) => setState(() {

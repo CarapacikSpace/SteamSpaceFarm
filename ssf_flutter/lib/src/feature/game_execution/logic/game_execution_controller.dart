@@ -4,6 +4,7 @@ import 'package:ssf_flutter/src/feature/catalog/logic/catalog_controller.dart';
 import 'package:ssf_flutter/src/feature/catalog/model/local_app.dart';
 import 'package:ssf_flutter/src/feature/game_execution/data/steam_game.dart';
 import 'package:ssf_flutter/src/feature/game_execution/logic/game_launcher.dart';
+import 'package:ssf_flutter/src/feature/game_execution/logic/session_work_queue.dart';
 import 'package:ssf_flutter/src/feature/game_execution/model/bulk_actions.dart';
 import 'package:ssf_flutter/src/feature/game_execution/model/steam_game_process.dart';
 import 'package:ssf_flutter/src/localization/generated/l10n.dart';
@@ -27,6 +28,12 @@ class GameExecutionController({
     onUserError: onUserError,
     localizations: localizations,
   );
+  late final SessionWorkQueue work = SessionWorkQueue(
+    launcher: _launcher,
+    service: steamGameService,
+    repository: appsRepository,
+    appById: _launcher.currentApp,
+  )..addListener(_notifyIfMounted);
   final Set<int> _appOperations = <int>{};
   bool _groupOperationActive = false;
   bool _disposed = false;
@@ -35,6 +42,7 @@ class GameExecutionController({
 
   Set<int> get automaticRunningAppIds => <int>{
     ..._launcher.batchLaunchedAppIds,
+    ...work.jobs.keys,
     if (_launcher.sequentialAppId case final int appId) appId,
   }.intersection(runningAppIds);
 
@@ -52,14 +60,14 @@ class GameExecutionController({
 
   bool get isSequentialActive => _launcher.isSequentialActive;
 
-  bool get isQueueActive => isBatchActive || isSequentialActive;
+  bool get isQueueActive => work.active || isBatchActive || isSequentialActive;
 
-  bool get isQueuePaused => _launcher.isQueuePaused;
+  bool get isQueuePaused => work.active ? work.paused : _launcher.isQueuePaused;
 
   bool get isBusy =>
       _groupOperationActive || _appOperations.isNotEmpty || !steamGameService.processManager.acceptingGameStarts;
 
-  int get queuedCount => _launcher.queuedCount;
+  int get queuedCount => _launcher.queuedCount + _launcher.suspendedCount + work.jobs.length;
 
   int get queueRemaining => isSequentialActive ? _launcher.sequentialRemaining : _launcher.batchRemaining;
 
@@ -93,7 +101,11 @@ class GameExecutionController({
     }
     _notifyIfMounted();
     try {
-      if (!isRunning(app.appId)) {
+      if (work.jobs.containsKey(app.appId)) {
+        work.remove(app.appId);
+        return null;
+      }
+      if (!work.active && !isRunning(app.appId)) {
         if (isSequentialActive) {
           return _l10n.sequentialQueueBlocksManualLaunch;
         }
@@ -110,13 +122,13 @@ class GameExecutionController({
   }
 
   Future<String?> startBulk(BulkLaunchRequest request, List<LocalApp> candidates) async {
-    if (_groupOperationActive || isQueueActive) {
+    if (_groupOperationActive || isBatchActive || isSequentialActive) {
       return _l10n.activeQueueMustStop;
     }
     if (candidates.isEmpty) {
       return _l10n.selectionHasNoEligibleApps;
     }
-    if (request.mode == BulkLaunchMode.allSequential && runningCount > 0) {
+    if (request.mode == BulkLaunchMode.allSequential && runningCount > 0 && !_launcher.suspended) {
       return _l10n.sequentialQueueRequiresStoppedGames;
     }
     _groupOperationActive = true;
@@ -146,10 +158,18 @@ class GameExecutionController({
     if (!isQueueActive) {
       return;
     }
-    _launcher.setQueuePaused(paused: !isQueuePaused);
+    if (work.active) {
+      work.togglePause();
+    } else {
+      _launcher.setQueuePaused(paused: !isQueuePaused);
+    }
   }
 
   Future<void> stopQueue() => _runGroupOperation(() async {
+    if (work.active) {
+      await work.stop();
+      return;
+    }
     if (isSequentialActive) {
       await _launcher.stopSequential();
     } else if (isBatchActive) {
@@ -208,6 +228,7 @@ class GameExecutionController({
   @override
   void dispose() {
     _disposed = true;
+    work.dispose();
     _launcher.dispose();
     super.dispose();
   }

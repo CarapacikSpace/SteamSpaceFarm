@@ -19,6 +19,7 @@ class GamePresenceController({SteamPresenceOpener? open}) {
   String? _steamId;
   int _users = 0;
   int _operations = 0;
+
   bool get isActive => _users > 0 || _operations > 0;
 
   Future<T> _serialize<T>(Future<T> Function() action) {

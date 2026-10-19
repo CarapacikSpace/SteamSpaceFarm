@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:ssf_flutter/src/localization/generated/l10n.dart';
 import 'package:ssf_flutter/src/ui_kit/controls/steam_text_field.dart';
+import 'package:ssf_flutter/src/ui_kit/layout/steam_layout_breakpoints.dart';
 import 'package:ssf_flutter/src/ui_kit/steam_tokens.dart';
 
 class const SteamSearchField({
@@ -22,7 +23,7 @@ class _SteamSearchFieldState() extends State<SteamSearchField> {
 
   @override
   Widget build(BuildContext context) {
-    final bool touchLayout = MediaQuery.sizeOf(context).width < 600;
+    final bool touchLayout = MediaQuery.sizeOf(context).width < SteamLayoutBreakpoints.medium;
     final double height = widget.height ?? (touchLayout ? SteamUiMetrics.touchInputHeight : SteamUiMetrics.inputHeight);
     return AnimatedBuilder(
       animation: Listenable.merge([widget.controller, widget.focusNode]),

@@ -1,6 +1,7 @@
 import 'package:ssf_flutter/src/feature/catalog/logic/app_sorting.dart';
 import 'package:ssf_flutter/src/feature/catalog/model/local_app.dart';
 import 'package:ssf_flutter/src/feature/game_execution/model/beautiful_hours_configuration.dart';
+import 'package:ssf_flutter/src/feature/game_execution/model/session_limits.dart';
 
 enum BulkLaunchMode() {
   marked,
@@ -34,7 +35,7 @@ final class const BulkLaunchRequest({
   required final BulkLaunchMode mode,
   required final BulkLaunchOrder order,
   required final SortDirection direction,
-  final int concurrentLimit = 30,
+  final int concurrentLimit = defaultConcurrentGames,
   final int runSeconds = 60,
   final int lowPlaytimeRunSeconds = 60,
   final int delaySeconds = 10,

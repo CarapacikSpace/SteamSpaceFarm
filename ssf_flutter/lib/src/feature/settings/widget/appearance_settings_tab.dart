@@ -63,6 +63,7 @@ class const AppearanceSettingsTab({
                       'ru' => 'Русский',
                       'en' => 'English',
                       'es' => 'Español',
+                      'zh' => '简体中文',
                       _ => locale.languageCode,
                     },
                     onChanged: isSaving
@@ -108,14 +109,22 @@ class const AppearanceSettingsTab({
             const SizedBox(height: 12),
             LayoutBuilder(
               builder: (context, constraints) {
-                final double tileWidth = constraints.maxWidth >= 760
-                    ? (constraints.maxWidth - 16) / 2
+                const double spacing = 16;
+                // Fit the widest preview (340) and the option's padding (14 per side).
+                const double minimumOptionWidth = 340 + 14 * 2;
+                final double tileWidth = constraints.maxWidth >= minimumOptionWidth * 2 + spacing
+                    ? (constraints.maxWidth - spacing) / 2
                     : constraints.maxWidth;
                 return Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
+                  spacing: spacing,
+                  runSpacing: spacing,
                   children: [
-                    for (final SteamAppCardType cardType in SteamAppCardType.values)
+                    for (final SteamAppCardType cardType in const [
+                      SteamAppCardType.libraryCapsule,
+                      SteamAppCardType.storeHeader,
+                      SteamAppCardType.mainCapsule,
+                      SteamAppCardType.appIcon,
+                    ])
                       SizedBox(
                         width: tileWidth,
                         child: _CardTypeOption(

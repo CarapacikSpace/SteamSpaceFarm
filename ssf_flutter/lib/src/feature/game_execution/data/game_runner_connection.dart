@@ -4,13 +4,21 @@ import 'dart:io';
 
 abstract interface class GameConnection() {
   Process get process;
+
   int get pid;
+
   String get runId;
+
   Stopwatch get elapsed;
+
   bool get exited;
+
   Future<int> get exitCode;
+
   Future<void> waitUntilReady({Duration timeout});
+
   Future<void> updateDeadline(Duration? remaining);
+
   Future<void> stop({bool force = false});
 }
 
@@ -50,6 +58,7 @@ final class GameRunnerConnection({
 
   @override
   final Stopwatch elapsed = Stopwatch();
+
   @override
   int get pid => process.pid;
   final Completer<void> _ready = Completer<void>();

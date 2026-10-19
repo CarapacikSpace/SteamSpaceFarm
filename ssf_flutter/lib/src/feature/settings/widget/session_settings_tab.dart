@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:ssf_flutter/src/feature/game_execution/model/card_farming_mode.dart';
 import 'package:ssf_flutter/src/feature/settings/model/app_settings.dart';
 import 'package:ssf_flutter/src/localization/localization_context.dart';
 import 'package:ssf_flutter/src/ui_kit/steam_ui_kit.dart';
@@ -36,17 +37,13 @@ class const SessionSettingsTab({
               ),
               const SizedBox(height: 16),
             ],
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              controlAffinity: ListTileControlAffinity.leading,
+            SteamSwitchTile(
               value: settings.refreshOnStartup,
               onChanged: isSaving ? null : (value) => onChanged(settings.copyWith(refreshOnStartup: value)),
               title: Text(context.l10n.refreshOnStartup),
               subtitle: Text(context.l10n.refreshOnStartupHint),
             ),
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              controlAffinity: ListTileControlAffinity.leading,
+            SteamSwitchTile(
               value: settings.invisibleWhilePlaying,
               onChanged: isSaving || gamesActive
                   ? null
@@ -54,9 +51,7 @@ class const SessionSettingsTab({
               title: Text(context.l10n.invisibleWhilePlaying),
               subtitle: Text(context.l10n.invisibleWhilePlayingHint),
             ),
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              controlAffinity: ListTileControlAffinity.leading,
+            SteamSwitchTile(
               value: settings.experimentalSteamKit,
               onChanged: isSaving || gamesActive
                   ? null
@@ -64,6 +59,34 @@ class const SessionSettingsTab({
               title: Text(context.l10n.experimentalSteamKit),
               subtitle: Text(context.l10n.experimentalSteamKitHint),
             ),
+            SteamSwitchTile(
+              value: settings.refreshPlaytimeHourly,
+              onChanged: isSaving ? null : (value) => onChanged(settings.copyWith(refreshPlaytimeHourly: value)),
+              title: Text(context.l10n.refreshPlaytimeHourly),
+              subtitle: Text(context.l10n.refreshPlaytimeHourlyHint),
+            ),
+            const SizedBox(height: 20),
+            Text(context.l10n.cardFarmingMode),
+            const SizedBox(height: 8),
+            for (final mode in CardFarmingMode.values) ...[
+              SteamRadioOption(
+                selected: settings.cardFarmingMode == mode,
+                onPressed: isSaving ? null : () => onChanged(settings.copyWith(cardFarmingMode: mode)),
+                title: switch (mode) {
+                  CardFarmingMode.fast => context.l10n.cardModeFast,
+                  CardFarmingMode.sequential => context.l10n.cardModeSequential,
+                  CardFarmingMode.combined => context.l10n.cardModeCombined,
+                },
+                description: switch (mode) {
+                  CardFarmingMode.fast => context.l10n.cardModeFastHint,
+                  CardFarmingMode.sequential => context.l10n.cardModeSequentialHint,
+                  CardFarmingMode.combined => context.l10n.cardModeCombinedHint,
+                },
+              ),
+              if (mode != CardFarmingMode.values.last) const SizedBox(height: 8),
+            ],
+            const SizedBox(height: 12),
+            Text(context.l10n.cardsPriority, style: const TextStyle(color: SteamUiColors.textSubtitle)),
             const SizedBox(height: 24),
           ],
         ),

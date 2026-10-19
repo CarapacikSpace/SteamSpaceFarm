@@ -10,6 +10,7 @@ import 'package:ssf_flutter/src/feature/catalog/model/local_app.dart';
 import 'package:ssf_flutter/src/feature/game_execution/data/game_runner_connection.dart';
 import 'package:ssf_flutter/src/feature/game_execution/data/steam_game.dart';
 import 'package:ssf_flutter/src/feature/game_execution/model/bulk_actions.dart';
+import 'package:ssf_flutter/src/feature/game_execution/model/session_limits.dart';
 import 'package:ssf_flutter/src/feature/game_execution/model/steam_game_process.dart';
 import 'package:ssf_flutter/src/localization/generated/l10n.dart';
 import 'package:ssf_flutter/src/localization/generated/l10n_en.dart';
@@ -20,10 +21,6 @@ enum BatchLaunchMode() {
   marked,
   favorites,
 }
-
-const int minimumConcurrentGames = 1;
-const int maximumConcurrentGames = 30;
-const int defaultConcurrentGames = 30;
 
 class GameLauncher({
   required final IAppsRepository appsRepository,
@@ -48,6 +45,8 @@ class GameLauncher({
           _appOperations.isNotEmpty ||
           isBatchActive ||
           isSequentialActive ||
+          suspended ||
+          (hasBackgroundWork?.call() ?? false) ||
           steamGame.hasProcesses,
       stop: stopAll,
     );
@@ -57,6 +56,135 @@ class GameLauncher({
       maximumConcurrentGames,
       'maxRunningGames',
     );
+  }
+
+  bool suspended = false;
+  final _knownApps = <int, LocalApp>{};
+
+  void clearKnownApps() {
+    _knownApps.clear();
+    _fractionalMilliseconds.clear();
+  }
+
+  LocalApp? currentApp(int appId) => latestAppById?.call(appId) ?? _knownApps[appId];
+  bool _technicalStop = false;
+  final _suspendedApps = <int, LocalApp>{};
+  final _suspendedBatch = <int>{};
+  final _remainingRuns = <int, Duration>{};
+  final _fractionalMilliseconds = <int, int>{};
+  Future<void> Function()? beforeStopAll;
+  bool Function()? hasBackgroundWork;
+  VoidCallback? onUnexpectedExit;
+
+  int get suspendedCount => _suspendedApps.length;
+
+  Future<void> suspendHours() async {
+    suspended = true;
+    _sequentialTimer?.cancel();
+    _sequentialDelayTimer?.cancel();
+    _sequentialDelayTimer = null;
+    _notifyStateChanged();
+    await Future.wait(_appOperations.values.toList());
+    _technicalStop = true;
+    try {
+      for (final SteamGameProcess process in launchedGames.toList()) {
+        final LocalApp app = currentApp(process.app.appId) ?? process.app;
+        _suspendedApps[app.appId] = app;
+        if (batchLaunchedAppIds.contains(app.appId)) {
+          _suspendedBatch.add(app.appId);
+        }
+        if (_sequentialAppId == app.appId) {
+          final Duration duration =
+              _remainingRuns[app.appId] ??
+              sequentialRunDurationFor(
+                app: app,
+                configuredDuration: _sequentialRunDuration,
+                lowPlaytimeDuration: _sequentialLowPlaytimeRunDuration,
+              );
+          _remainingRuns[app.appId] = duration - process.connection.elapsed.elapsed;
+          sequentialQueue.addFirst(app);
+        }
+        await _runSerialized(app.appId, () => _stopRunningGame(process, latestApp: app, killProcess: true));
+      }
+    } finally {
+      _technicalStop = false;
+    }
+    if (launchedGames.isNotEmpty) {
+      throw const GameRunnerException('stop_not_confirmed');
+    }
+  }
+
+  Future<void> resumeHours() async {
+    final List<LocalApp> apps = _suspendedApps.values.toList();
+    _suspendedApps.clear();
+    final Set<int> batch = _suspendedBatch.toSet();
+    _suspendedBatch.clear();
+    for (final LocalApp saved in apps.reversed.where((app) => batch.contains(app.appId))) {
+      final LocalApp current = currentApp(saved.appId) ?? saved;
+      if (saved.stopAtMinutes == null || (current.playtimeMinutes ?? 0) < saved.stopAtMinutes!) {
+        batchQueue.addFirst(current);
+      }
+    }
+    suspended = false;
+    for (final saved in apps) {
+      if (_stoppingAll || _disposed || suspended) {
+        break;
+      }
+      if (_sequentialActive && sequentialQueue.any((app) => app.appId == saved.appId)) {
+        continue;
+      }
+      final LocalApp app = currentApp(saved.appId) ?? saved;
+      if (saved.stopAtMinutes != null && (app.playtimeMinutes ?? 0) >= saved.stopAtMinutes!) {
+        continue;
+      }
+      if (batch.contains(saved.appId)) {
+        continue;
+      } else {
+        await toggleGame(app);
+      }
+    }
+    await _fillBatchSlots();
+    await _scheduleNextSequential();
+    _notifyStateChanged();
+  }
+
+  Future<void> launchExclusive(LocalApp app) => _runSerialized(app.appId, () => _launchGame(app, exclusive: true));
+
+  Future<void> stopExclusive() async {
+    _technicalStop = true;
+    try {
+      for (final SteamGameProcess process in launchedGames.toList()) {
+        await _runSerialized(
+          process.app.appId,
+          () => _stopRunningGame(process, latestApp: currentApp(process.app.appId) ?? process.app, killProcess: true),
+        );
+      }
+    } finally {
+      _technicalStop = false;
+    }
+    if (launchedGames.isNotEmpty) {
+      throw const GameRunnerException('stop_not_confirmed');
+    }
+  }
+
+  Future<void> applyConfirmedMinutes(Map<int, int> minutes) async {
+    for (final MapEntry<int, int> entry in minutes.entries) {
+      final LocalApp? app = currentApp(entry.key);
+      if (app == null) {
+        continue;
+      }
+      // Keep the local estimate while Steam catches up; never add the same session twice.
+      final LocalApp updated = app.copyWith(
+        playtimeMinutes: max(app.playtimeMinutes ?? 0, entry.value),
+        confirmedPlaytimeMinutes: entry.value,
+      );
+      await appsRepository.updateApp(updated);
+      onUpdateAppList(updated);
+      _knownApps[entry.key] = updated;
+      if (entry.value > (app.playtimeMinutes ?? 0)) {
+        _fractionalMilliseconds.remove(entry.key);
+      }
+    }
   }
 
   GeneratedLocalizations get _l10n => localizations?.call() ?? GeneratedLocalizationsEn();
@@ -158,16 +286,27 @@ class GameLauncher({
           !steamGame.processManager.acceptingGameStarts) {
         return;
       }
+      if (suspended) {
+        if (_suspendedApps.containsKey(app.appId)) {
+          _suspendedApps.remove(app.appId);
+        } else {
+          _suspendedApps[app.appId] = app;
+        }
+        _notifyStateChanged();
+        return;
+      }
       await _toggleGame(app);
     });
   }
 
   Future<void> stopGame(int appId) {
+    _suspendedApps.remove(appId);
+    _suspendedBatch.remove(appId);
     _cancelledStarts.add(appId);
     return _runSerialized(appId, () async {
       final SteamGameProcess? process = launchedGames.firstWhereOrNull((candidate) => candidate.app.appId == appId);
       if (process != null) {
-        await _stopRunningGame(process, latestApp: latestAppById?.call(appId) ?? process.app, killProcess: true);
+        await _stopRunningGame(process, latestApp: currentApp(appId) ?? process.app, killProcess: true);
       }
       _cancelledStarts.remove(appId);
     });
@@ -187,7 +326,7 @@ class GameLauncher({
       ..clear()
       ..addAll(
         {for (final app in apps) app.appId: app}.values
-            .where((app) => !launchedGames.any((process) => process.app.appId == app.appId)),
+            .where((app) => suspended || !launchedGames.any((process) => process.app.appId == app.appId)),
       );
     if (batchQueue.isEmpty) {
       _batchMode = null;
@@ -226,7 +365,7 @@ class GameLauncher({
     if (_sequentialActive || _disposed || !steamGame.processManager.acceptingGameStarts) {
       return;
     }
-    if (occupiedSlots > 0 || _batchMode != null || _stoppingAll) {
+    if ((!suspended && occupiedSlots > 0) || _batchMode != null || _stoppingAll) {
       onUserError(_l10n.sequentialQueueRequiresStoppedGames);
       return;
     }
@@ -289,6 +428,15 @@ class GameLauncher({
 
   Future<void> _stopAll() async {
     _stoppingAll = true;
+    try {
+      await beforeStopAll?.call();
+    } on Object catch (error, stack) {
+      AppLogger.error('Queue cleanup failed; stopping owned processes', error, stack);
+    }
+    suspended = false;
+    _suspendedApps.clear();
+    _suspendedBatch.clear();
+    _remainingRuns.clear();
     _launchGeneration++;
     _batchMode = null;
     _sequentialActive = false;
@@ -324,12 +472,16 @@ class GameLauncher({
     await _launchGame(app);
   }
 
-  Future<void> _launchGame(LocalApp app) async {
+  Future<void> _launchGame(LocalApp app, {bool exclusive = false}) async {
+    if (suspended && !exclusive) {
+      return;
+    }
     final int appId = app.appId;
+    _knownApps[appId] = app;
     if (launchedGames.any((process) => process.app.appId == appId) || _startingAppIds.contains(appId)) {
       return;
     }
-    if (_sequentialActive && _sequentialAppId != appId) {
+    if (!exclusive && _sequentialActive && _sequentialAppId != appId) {
       return;
     }
     if (_disposed ||
@@ -345,7 +497,7 @@ class GameLauncher({
     _startingAppIds.add(appId);
     _notifyStateChanged();
     try {
-      final Duration? maximumRunTime = _maximumRunTimeFor(app);
+      final Duration? maximumRunTime = exclusive ? null : _maximumRunTimeFor(app);
       final String? expectedSteamId = await appsRepository.getCatalogSteamId();
       if (expectedSteamId == null || expectedSteamId.isEmpty) {
         throw const GameRunnerException('account_required');
@@ -372,7 +524,9 @@ class GameLauncher({
       );
 
       gameTimers[appId] = Timer.periodic(const Duration(seconds: 10), (_) {
-        unawaited(_runSerialized(appId, () => _checkTarget(launched)));
+        if (!suspended) {
+          unawaited(_runSerialized(appId, () => _checkTarget(launched)));
+        }
       });
     } on Object catch (error) {
       batchLaunchedAppIds.remove(appId);
@@ -412,7 +566,7 @@ class GameLauncher({
       return;
     }
 
-    final LocalApp latestApp = latestAppById?.call(current.app.appId) ?? current.app;
+    final LocalApp latestApp = currentApp(current.app.appId) ?? current.app;
     if (!_sequentialActive && _runnerTargets[latestApp.appId] != latestApp.stopAtMinutes) {
       final int? target = latestApp.stopAtMinutes;
       final int total = max(
@@ -439,11 +593,12 @@ class GameLauncher({
 
   Duration? _maximumRunTimeFor(LocalApp app) {
     if (_sequentialActive && _sequentialAppId == app.appId) {
-      return sequentialRunDurationFor(
-        app: app,
-        configuredDuration: _sequentialRunDuration,
-        lowPlaytimeDuration: _sequentialLowPlaytimeRunDuration,
-      );
+      return _remainingRuns[app.appId] ??
+          sequentialRunDurationFor(
+            app: app,
+            configuredDuration: _sequentialRunDuration,
+            lowPlaytimeDuration: _sequentialLowPlaytimeRunDuration,
+          );
     }
 
     final int? targetMinutes = app.stopAtMinutes;
@@ -461,13 +616,10 @@ class GameLauncher({
     }
     if (exitCode != 0 && !_disposed && !_stoppingAll) {
       setQueuePaused(paused: true);
+      onUnexpectedExit?.call();
       onUserError(_l10n.gameSessionInterrupted(current.app.name, current.app.appId));
     }
-    await _stopRunningGame(
-      current,
-      latestApp: latestAppById?.call(current.app.appId) ?? current.app,
-      killProcess: false,
-    );
+    await _stopRunningGame(current, latestApp: currentApp(current.app.appId) ?? current.app, killProcess: false);
   }
 
   Future<void> _stopRunningGame(
@@ -490,6 +642,9 @@ class GameLauncher({
       }
     }
 
+    if (!_technicalStop) {
+      _remainingRuns.remove(appId);
+    }
     batchLaunchedAppIds.remove(appId);
     final wasSequentialGame = _sequentialAppId == appId;
     if (wasSequentialGame) {
@@ -503,7 +658,10 @@ class GameLauncher({
     _runnerTargets.remove(appId);
 
     if (startedAt != null) {
-      final int playedMinutes = process.connection.elapsed.elapsed.inMinutes;
+      final int milliseconds =
+          process.connection.elapsed.elapsed.inMilliseconds + (_fractionalMilliseconds[appId] ?? 0);
+      final int playedMinutes = milliseconds ~/ Duration.millisecondsPerMinute;
+      _fractionalMilliseconds[appId] = milliseconds % Duration.millisecondsPerMinute;
       final int totalMinutes = max(latestApp.playtimeMinutes ?? 0, (process.app.playtimeMinutes ?? 0) + playedMinutes);
       final int? targetMinutes = latestApp.stopAtMinutes;
       final LocalApp updatedApp = latestApp.copyWith(
@@ -511,6 +669,7 @@ class GameLauncher({
         stopAtMinutes: Optional.of(targetMinutes != null && totalMinutes >= targetMinutes ? null : targetMinutes),
       );
       try {
+        _knownApps[appId] = updatedApp;
         await appsRepository.updateApp(updatedApp);
         if (!_disposed) {
           onUpdateAppList.call(updatedApp);
@@ -525,25 +684,36 @@ class GameLauncher({
     if (_batchMode != null && !_disposed) {
       unawaited(_fillBatchSlots());
     }
-    if (wasSequentialGame && _sequentialActive && !_disposed) {
+    if (wasSequentialGame && _sequentialActive && !_disposed && !suspended) {
       unawaited(_scheduleNextSequential());
     }
     _notifyStateChanged();
   }
 
   Future<void> _fillBatchSlots() async {
-    if (_isFillingBatch || _disposed || _stoppingAll || _batchMode == null || _sequentialActive || _batchPaused) {
+    if (suspended ||
+        _isFillingBatch ||
+        _disposed ||
+        _stoppingAll ||
+        _batchMode == null ||
+        _sequentialActive ||
+        _batchPaused) {
       return;
     }
     _isFillingBatch = true;
     try {
-      while (!_disposed &&
+      while (!suspended &&
+          !_disposed &&
           !_stoppingAll &&
           _batchMode != null &&
           !_batchPaused &&
           occupiedSlots < maxRunningGames &&
           batchQueue.isNotEmpty) {
-        final LocalApp next = batchQueue.removeFirst();
+        final LocalApp saved = batchQueue.removeFirst();
+        final LocalApp next = currentApp(saved.appId) ?? saved;
+        if (saved.stopAtMinutes != null && (next.playtimeMinutes ?? 0) >= saved.stopAtMinutes!) {
+          continue;
+        }
         if (launchedGames.any((process) => process.app.appId == next.appId)) {
           continue;
         }
@@ -561,7 +731,7 @@ class GameLauncher({
       }
     } finally {
       _isFillingBatch = false;
-      if (batchQueue.isEmpty && batchLaunchedAppIds.isEmpty) {
+      if (!suspended && batchQueue.isEmpty && batchLaunchedAppIds.isEmpty) {
         _batchMode = null;
         _batchPaused = false;
       }
@@ -570,12 +740,22 @@ class GameLauncher({
   }
 
   Future<void> _launchNextSequential() async {
-    if (!_sequentialActive || _disposed || _sequentialPaused || _sequentialAppId != null) {
+    if (suspended || !_sequentialActive || _disposed || _sequentialPaused || _sequentialAppId != null) {
       return;
     }
 
-    while (!_disposed && _sequentialActive && !_stoppingAll && !_sequentialPaused && sequentialQueue.isNotEmpty) {
-      final LocalApp next = sequentialQueue.removeFirst();
+    while (!suspended &&
+        !_disposed &&
+        _sequentialActive &&
+        !_stoppingAll &&
+        !_sequentialPaused &&
+        sequentialQueue.isNotEmpty) {
+      final LocalApp saved = sequentialQueue.removeFirst();
+      final LocalApp next = currentApp(saved.appId) ?? saved;
+      if ((_remainingRuns[next.appId] ?? const Duration(seconds: 1)) <= Duration.zero) {
+        _remainingRuns.remove(next.appId);
+        continue;
+      }
       _sequentialAppId = next.appId;
       final int generation = _launchGeneration;
       await _runSerialized(next.appId, () async {
@@ -597,11 +777,13 @@ class GameLauncher({
         continue;
       }
 
-      final Duration runDuration = sequentialRunDurationFor(
-        app: next,
-        configuredDuration: _sequentialRunDuration,
-        lowPlaytimeDuration: _sequentialLowPlaytimeRunDuration,
-      );
+      final Duration runDuration =
+          _remainingRuns[next.appId] ??
+          sequentialRunDurationFor(
+            app: next,
+            configuredDuration: _sequentialRunDuration,
+            lowPlaytimeDuration: _sequentialLowPlaytimeRunDuration,
+          );
       _sequentialTimer = Timer(runDuration, () {
         unawaited(_finishSequentialGame(next.appId));
       });
@@ -618,7 +800,8 @@ class GameLauncher({
   }
 
   Future<void> _scheduleNextSequential() async {
-    if (!_sequentialActive ||
+    if (suspended ||
+        !_sequentialActive ||
         _disposed ||
         _sequentialPaused ||
         _sequentialAppId != null ||

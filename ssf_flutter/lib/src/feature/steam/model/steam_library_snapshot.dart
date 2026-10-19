@@ -42,6 +42,8 @@ class const SteamLibrarySnapshot({
           appId: appId,
           name: name == null || name.isEmpty ? 'App $appId' : name,
           type: SteamAppType.fromString(entry['type'] as String?),
+          storeHeaderImage: entry['storeHeaderImage'] as String?,
+          libraryCapsuleImage: entry['libraryCapsuleImage'] as String?,
           libraryOwnership: ownership,
           playtimeMinutes: hours == null ? null : (hours * 60).round(),
           lastPlayed: timestamp is int && timestamp > 0
@@ -79,10 +81,13 @@ class const SteamLibrarySnapshot({
         libraryOwnership: _mergeOwnership(old, app.libraryOwnership),
         isLibraryOwnershipManual: old?.isLibraryOwnershipManual ?? false,
         playtimeMinutes: app.playtimeMinutes ?? old?.playtimeMinutes,
+        confirmedPlaytimeMinutes: app.playtimeMinutes ?? old?.confirmedPlaytimeMinutes,
         stopAtMinutes: old?.stopAtMinutes,
         isFavorite: old?.isFavorite ?? false,
         isHidden: old?.isHidden ?? false,
         icon: old?.icon,
+        storeHeaderImage: app.storeHeaderImage ?? old?.storeHeaderImage,
+        libraryCapsuleImage: app.libraryCapsuleImage ?? old?.libraryCapsuleImage,
         lastPlayed: app.lastPlayed ?? old?.lastPlayed,
       );
     }

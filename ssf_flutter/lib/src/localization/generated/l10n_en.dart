@@ -904,11 +904,11 @@ class GeneratedLocalizationsEn extends GeneratedLocalizations {
       'For Steamworks and SteamKit. Restores your previous status after all games stop. SteamKit also works without the local Steam client.';
 
   @override
-  String get experimentalSteamKit => 'Launch via SteamKit — EXPERIMENTAL';
+  String get experimentalSteamKit => 'Run without the Steam client open';
 
   @override
   String get experimentalSteamKitHint =>
-      'Game sessions and Invisible status work without the local Steam client running: just sign in to SteamSpaceFarm. Steam determines whether playtime is recorded.';
+      'Just sign in to SteamSpaceFarm. Game sessions and Invisible status work even when the Steam client is closed. Steam determines whether playtime is recorded.';
 
   @override
   String get gamesBlockLibrary => 'Stop all games before refreshing the library or signing out.';
@@ -946,4 +946,104 @@ class GeneratedLocalizationsEn extends GeneratedLocalizations {
   @override
   String get steamPresenceRestoreFailed =>
       'Could not restore your previous Steam status after several attempts. Check your status in Steam.';
+
+  @override
+  String get cardFarmingMode => 'Card farming mode';
+
+  @override
+  String get cardModeFast => 'Fast';
+
+  @override
+  String get cardModeSequential => 'One at a time';
+
+  @override
+  String get cardModeCombined => 'Combined';
+
+  @override
+  String get cardModeFastHint => 'Alternates 5 minutes of simultaneous sessions with short individual sessions.';
+
+  @override
+  String get cardModeSequentialHint =>
+      'Runs one game until its available card drops are exhausted, then moves to the next.';
+
+  @override
+  String get cardModeCombinedHint => 'First builds up 2 hours in multiple games, then farms one game at a time.';
+
+  @override
+  String get refreshPlaytimeHourly => 'Update Steam playtime every hour';
+
+  @override
+  String get refreshPlaytimeHourlyHint =>
+      'Temporarily stops sessions, retrieves playtime from Steam, then resumes them.';
+
+  @override
+  String get cardsTitle => 'Trading cards';
+
+  @override
+  String get cardsRefresh => 'Check card drops';
+
+  @override
+  String get cardsStartAll => 'Farm all cards';
+
+  @override
+  String get cardsStart => 'Farm cards';
+
+  @override
+  String get cardsUnknown => 'Card drops have not been checked yet';
+
+  @override
+  String get cardsEmpty => 'No cards';
+
+  @override
+  String get cardsPartial => 'Data is incomplete. An unknown count is not treated as zero.';
+
+  @override
+  String get cardsFailed => 'Could not check data or run the session. Please retry.';
+
+  @override
+  String get cardsPriority => 'Cards take priority over regular playtime. Hour progress is preserved.';
+
+  @override
+  String get cardsFilter => 'With card drops';
+
+  @override
+  String cardsRemaining(int count) {
+    return 'Card drops remaining: $count';
+  }
+
+  @override
+  String cardsCheckedAt(String time) {
+    return 'Checked: $time';
+  }
+
+  @override
+  String cardsQueued(int count) {
+    return 'Card games queued: $count';
+  }
+
+  @override
+  String get workPreparing => 'Preparing sessions';
+
+  @override
+  String get workGroup => 'Cards: simultaneous sessions';
+
+  @override
+  String get workSingle => 'Cards: one game';
+
+  @override
+  String get workChecking => 'Checking remaining card drops';
+
+  @override
+  String get workWaiting => 'Waiting / paused';
+
+  @override
+  String get workSyncing => 'Updating Steam playtime';
+
+  @override
+  String get cardsStopDescription => 'Stop card farming and resume waiting playtime sessions?';
+
+  @override
+  String cardsCount(int count) {
+    return 'Cards $count';
+  }
 }

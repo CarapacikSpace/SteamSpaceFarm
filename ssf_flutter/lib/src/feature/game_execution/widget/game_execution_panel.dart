@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:ssf_flutter/src/feature/game_execution/logic/game_execution_controller.dart';
 import 'package:ssf_flutter/src/feature/game_execution/logic/game_launcher.dart';
+import 'package:ssf_flutter/src/feature/game_execution/widget/card_farming_panel.dart';
 import 'package:ssf_flutter/src/localization/generated/l10n.dart';
 import 'package:ssf_flutter/src/ui_kit/steam_ui_kit.dart';
 
@@ -17,12 +18,14 @@ class const GameExecutionPanel({
       return const SizedBox.shrink();
     }
 
-    final String queueLabel = switch ((controller.isSequentialActive, controller.batchMode)) {
-      (true, _) => GeneratedLocalizations.of(context).sequentialQueue,
-      (_, BatchLaunchMode.marked) => GeneratedLocalizations.of(context).marked,
-      (_, BatchLaunchMode.favorites) => GeneratedLocalizations.of(context).favorites,
-      _ => GeneratedLocalizations.of(context).manualLaunch,
-    };
+    final String queueLabel = controller.work.active
+        ? workPhaseLabel(context, controller.work.phase)
+        : switch ((controller.isSequentialActive, controller.batchMode)) {
+            (true, _) => GeneratedLocalizations.of(context).sequentialQueue,
+            (_, BatchLaunchMode.marked) => GeneratedLocalizations.of(context).marked,
+            (_, BatchLaunchMode.favorites) => GeneratedLocalizations.of(context).favorites,
+            _ => GeneratedLocalizations.of(context).manualLaunch,
+          };
     final String? currentName = controller.currentSequentialApp?.name;
 
     return Container(
@@ -105,7 +108,7 @@ class const GameExecutionPanel({
             ],
           );
 
-          if (constraints.maxWidth < 720) {
+          if (MediaQuery.sizeOf(context).width < SteamLayoutBreakpoints.expanded) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [summary, const SizedBox(height: 12), actions],
@@ -132,6 +135,9 @@ class const GameExecutionPanel({
       l10n.automaticAppsCount(controller.automaticRunningCount),
       l10n.manualAppsCount(controller.manualRunningCount),
     ];
+    if (controller.work.farming) {
+      parts.add(l10n.cardsQueued(controller.work.jobs.length));
+    }
     if (controller.isQueueActive) {
       parts.add(l10n.queuedAppsCount(controller.queuedCount));
     }

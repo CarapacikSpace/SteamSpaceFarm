@@ -13,6 +13,7 @@ import 'package:ssf_flutter/src/feature/steam/logic/steam_library_sync_controlle
 import 'package:ssf_flutter/src/feature/steam/model/steam_helper_event.dart';
 import 'package:ssf_flutter/src/feature/steam/widget/steam_integration_view.dart';
 import 'package:ssf_flutter/src/localization/generated/l10n.dart';
+import 'package:ssf_flutter/src/ui_kit/controls/steam_switch.dart';
 import 'package:ssf_flutter/src/ui_kit/controls/steam_text_field.dart';
 
 import 'catalog_presentation_test.dart' as catalog;
@@ -256,18 +257,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(l10n.sessionSettings), findsOneWidget);
     expect(find.text(l10n.refreshOnStartup), findsOneWidget);
-    final List<CheckboxListTile> checkboxes = tester
-        .widgetList<CheckboxListTile>(find.byType(CheckboxListTile))
-        .toList();
-    expect(checkboxes, hasLength(3));
-    expect((checkboxes[1].title! as Text).data, l10n.invisibleWhilePlaying);
-    expect((checkboxes[2].title! as Text).data, l10n.experimentalSteamKit);
+    final List<SteamSwitchTile> checkboxes = tester.widgetList<SteamSwitchTile>(find.byType(SteamSwitchTile)).toList();
+    expect(checkboxes, hasLength(4));
+    expect((checkboxes[3].title as Text).data, l10n.refreshPlaytimeHourly);
+    expect(checkboxes[3].onChanged, isNotNull);
+    expect((checkboxes[1].title as Text).data, l10n.invisibleWhilePlaying);
+    expect((checkboxes[2].title as Text).data, l10n.experimentalSteamKit);
     expect(checkboxes[1].onChanged, isNull);
-    expect(tester.widget<CheckboxListTile>(find.byType(CheckboxListTile).last).onChanged, isNull);
+    expect(tester.widget<SteamSwitchTile>(find.byType(SteamSwitchTile).at(2)).onChanged, isNull);
     active = false;
     manager.updateActivity();
     await tester.pump();
-    expect(tester.widget<CheckboxListTile>(find.byType(CheckboxListTile).last).onChanged, isNotNull);
+    expect(tester.widget<SteamSwitchTile>(find.byType(SteamSwitchTile).at(2)).onChanged, isNotNull);
     registration.release();
     expect(tester.takeException(), isNull);
   });

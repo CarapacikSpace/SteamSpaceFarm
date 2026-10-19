@@ -19,8 +19,80 @@ class SteamGameService({required final SteamProcessManager processManager}) {
   bool invisibleWhilePlaying = false;
   final _presence = GamePresenceController();
   final _presenceFailures = StreamController<void>.broadcast();
+
   Stream<void> get presenceRestorationFailures => _presenceFailures.stream;
   SteamKitSession? _steamKitSession;
+  SteamKitSession? _dataSession;
+  int _sessionHolds = 0;
+  Future<void> _queryTail = Future.value();
+  int _queryGeneration = 0;
+
+  void cancelDataQueries() {
+    _queryGeneration++;
+    _steamKitSession?.cancelQueries();
+    _dataSession?.cancelQueries();
+  }
+
+  /// Keep status and the Steam connection stable across technical stops.
+  Future<Future<void> Function()> holdSession(String steamId) async {
+    final Future<void> Function()? release = invisibleWhilePlaying
+        ? await _presence.acquire(steamId, localClientRequired: !experimentalSteamKit)
+        : null;
+    _sessionHolds++;
+    _steamKitSession?.keepAlive = true;
+    var released = false;
+    return () async {
+      if (released) {
+        return;
+      }
+      released = true;
+      try {
+        if (--_sessionHolds == 0) {
+          _steamKitSession?.keepAlive = false;
+          if (_owned.isEmpty) {
+            await _steamKitSession?.shutdown();
+          }
+          await _dataSession?.shutdown();
+          _dataSession = null;
+        }
+      } finally {
+        await release?.call();
+      }
+    };
+  }
+
+  Future<Map<String, dynamic>> queryData(String steamId, String command, {List<int> appIds = const []}) {
+    final int generation = _queryGeneration;
+    final Future<Map<String, dynamic>> result = _queryTail.then((_) async {
+      if (generation != _queryGeneration) {
+        throw const GameRunnerException('launch_cancelled');
+      }
+      SteamKitSession? session = experimentalSteamKit ? _steamKitSession : _dataSession;
+      if (session == null || session.closed) {
+        session = SteamKitSession(steamId: steamId, invisible: invisibleWhilePlaying, dataOnly: !experimentalSteamKit);
+        if (experimentalSteamKit) {
+          _steamKitSession = session;
+        } else {
+          _dataSession = session;
+        }
+      }
+      if (session.steamId != steamId) {
+        throw const GameRunnerException('account_mismatch');
+      }
+      session.keepAlive = true;
+      try {
+        return await session.query(command, appIds: appIds);
+      } finally {
+        session.keepAlive = _sessionHolds > 0;
+        if (_sessionHolds == 0 && _owned.isEmpty) {
+          await session.shutdown();
+        }
+      }
+    });
+    _queryTail = result.then<void>((_) {}, onError: (Object _, StackTrace _) {});
+    return result;
+  }
+
   final _launchActions = ProcessActionQueue();
   final _stopActions = ProcessActionQueue();
   final _launches = <Future<void>>{};
@@ -105,7 +177,8 @@ class SteamGameService({required final SteamProcessManager processManager}) {
         if (generation != _generation) {
           throw const GameRunnerException('launch_cancelled');
         }
-        session = _steamKitSession = SteamKitSession(steamId: expectedSteamId, invisible: invisibleWhilePlaying);
+        session = _steamKitSession = SteamKitSession(steamId: expectedSteamId, invisible: invisibleWhilePlaying)
+          ..keepAlive = _sessionHolds > 0;
       }
       if (session.steamId != expectedSteamId) {
         throw const GameRunnerException('account_mismatch');
@@ -204,6 +277,7 @@ class SteamGameService({required final SteamProcessManager processManager}) {
     _stopActions.cancelPending();
     await Future.wait([
       if (_steamKitSession != null) _steamKitSession!.shutdown(),
+      if (_dataSession != null) _dataSession!.shutdown(),
       ..._owned.values.toList().map((process) => process.connection.stop(force: true)),
       ..._launches.toList().map((launch) => launch.catchError((Object _) {})),
     ]);

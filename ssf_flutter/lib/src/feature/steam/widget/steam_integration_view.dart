@@ -11,6 +11,7 @@ import 'package:ssf_flutter/src/feature/steam/widget/steam_qr_code.dart';
 import 'package:ssf_flutter/src/localization/generated/l10n.dart';
 import 'package:ssf_flutter/src/ui_kit/controls/steam_button.dart';
 import 'package:ssf_flutter/src/ui_kit/controls/steam_text_field.dart';
+import 'package:ssf_flutter/src/ui_kit/layout/steam_layout_breakpoints.dart';
 import 'package:ssf_flutter/src/ui_kit/layout/steam_surface_card.dart';
 import 'package:ssf_flutter/src/ui_kit/overlay/steam_confirmation_dialog.dart';
 import 'package:ssf_flutter/src/ui_kit/overlay/steam_notice.dart';
@@ -382,7 +383,7 @@ class SteamIntegrationViewState() extends State<SteamIntegrationView> {
                             ),
                             const SizedBox(height: 30),
                             LayoutBuilder(
-                              builder: (context, constraints) => constraints.maxWidth >= 570
+                              builder: (context, constraints) => constraints.maxWidth >= SteamLayoutBreakpoints.medium
                                   ? Row(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [

@@ -199,8 +199,10 @@ internal static class Program
     {
         SteamKitPlayHost.RunChecks();
         SteamPresenceChecks.Run();
+        SteamAppArtworkChecks.Run();
         JsonContractChecks.Run();
         PlaytimeChecks.Run();
+        CardDropsChecks.Run();
         await AuthInputChecks.RunAsync().ConfigureAwait(false);
         var appids = new KeyValue { Name = "appids" };
         appids.Children.Add(new KeyValue { Name = "0", Value = "480" });
@@ -352,6 +354,7 @@ internal static class Program
         Console.Out.WriteLine(JsonSerializer.Serialize(new SyntheticResult("synthetic_pass", new[]
             {
                 "json_source_generation",
+                "cards_html_account_pagination_unknown_zero_foil",
                 "presence_restore_retry_manual_status_account_isolation",
                 "parser",
                 "license_filtering",

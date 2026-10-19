@@ -19,8 +19,11 @@ class SteamProcessManager() extends ChangeNotifier {
   bool _closing = false;
 
   bool get acceptingStarts => !_closing && _stopping == null;
+
   bool get hasActiveGames => _registrations.any((entry) => entry._game && entry._isActive());
+
   bool get hasActiveHelpers => _registrations.any((entry) => !entry._game && entry._isActive());
+
   bool get acceptingGameStarts => acceptingStarts && !hasActiveHelpers;
 
   SteamProcessRegistration register({

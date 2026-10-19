@@ -911,11 +911,11 @@ class GeneratedLocalizationsEs extends GeneratedLocalizations {
       'Para Steamworks y SteamKit. Restaura el estado anterior al detener todos los juegos. SteamKit también funciona sin el cliente local de Steam.';
 
   @override
-  String get experimentalSteamKit => 'Iniciar mediante SteamKit — EXPERIMENTAL';
+  String get experimentalSteamKit => 'Iniciar sin abrir el cliente de Steam';
 
   @override
   String get experimentalSteamKitHint =>
-      'Las sesiones de juego y el estado Invisible funcionan sin el cliente local de Steam abierto: basta con iniciar sesión en SteamSpaceFarm. Steam determina si se registra el tiempo jugado.';
+      'Solo tienes que iniciar sesión en SteamSpaceFarm. Las sesiones de juego y el estado Invisible funcionan incluso con el cliente de Steam cerrado. Steam determina si se registra el tiempo jugado.';
 
   @override
   String get gamesBlockLibrary => 'Detén todos los juegos antes de actualizar la biblioteca o cerrar sesión.';
@@ -955,4 +955,104 @@ class GeneratedLocalizationsEs extends GeneratedLocalizations {
   @override
   String get steamPresenceRestoreFailed =>
       'No se pudo restaurar tu estado anterior de Steam tras varios intentos. Comprueba tu estado en Steam.';
+
+  @override
+  String get cardFarmingMode => 'Modo de obtención de cromos';
+
+  @override
+  String get cardModeFast => 'Rápido';
+
+  @override
+  String get cardModeSequential => 'De uno en uno';
+
+  @override
+  String get cardModeCombined => 'Combinado';
+
+  @override
+  String get cardModeFastHint => 'Alterna 5 minutos de sesiones simultáneas con sesiones individuales breves.';
+
+  @override
+  String get cardModeSequentialHint =>
+      'Ejecuta un juego hasta obtener sus cromos disponibles y luego pasa al siguiente.';
+
+  @override
+  String get cardModeCombinedHint => 'Primero acumula 2 horas en varios juegos y después obtiene cromos de uno en uno.';
+
+  @override
+  String get refreshPlaytimeHourly => 'Actualizar el tiempo de Steam cada hora';
+
+  @override
+  String get refreshPlaytimeHourlyHint =>
+      'Detiene las sesiones temporalmente, consulta el tiempo en Steam y las reanuda.';
+
+  @override
+  String get cardsTitle => 'Cromos';
+
+  @override
+  String get cardsRefresh => 'Consultar cromos';
+
+  @override
+  String get cardsStartAll => 'Obtener todos los cromos';
+
+  @override
+  String get cardsStart => 'Obtener cromos';
+
+  @override
+  String get cardsUnknown => 'Aún no se han consultado los cromos';
+
+  @override
+  String get cardsEmpty => 'No hay cromos';
+
+  @override
+  String get cardsPartial => 'Los datos están incompletos. Una cantidad desconocida no se considera cero.';
+
+  @override
+  String get cardsFailed => 'No se pudieron consultar los datos o ejecutar la sesión. Inténtalo de nuevo.';
+
+  @override
+  String get cardsPriority => 'Los cromos tienen prioridad sobre las horas. Se conserva el progreso.';
+
+  @override
+  String get cardsFilter => 'Con cromos disponibles';
+
+  @override
+  String cardsRemaining(int count) {
+    return 'Cromos restantes: $count';
+  }
+
+  @override
+  String cardsCheckedAt(String time) {
+    return 'Comprobado: $time';
+  }
+
+  @override
+  String cardsQueued(int count) {
+    return 'Juegos con cromos en cola: $count';
+  }
+
+  @override
+  String get workPreparing => 'Preparando sesiones';
+
+  @override
+  String get workGroup => 'Cromos: sesiones simultáneas';
+
+  @override
+  String get workSingle => 'Cromos: un juego';
+
+  @override
+  String get workChecking => 'Consultando cromos restantes';
+
+  @override
+  String get workWaiting => 'En espera / pausado';
+
+  @override
+  String get workSyncing => 'Actualizando el tiempo de Steam';
+
+  @override
+  String get cardsStopDescription => '¿Detener la obtención de cromos y reanudar las sesiones de tiempo en espera?';
+
+  @override
+  String cardsCount(int count) {
+    return 'Cromos $count';
+  }
 }

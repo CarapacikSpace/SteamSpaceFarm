@@ -14,6 +14,7 @@ import 'package:ssf_flutter/src/feature/steam/logic/steam_library_controller.dar
 import 'package:ssf_flutter/src/feature/steam/logic/steam_library_sync_controller.dart';
 import 'package:ssf_flutter/src/feature/steam/widget/steam_integration_view.dart';
 import 'package:ssf_flutter/src/localization/localization_context.dart';
+import 'package:ssf_flutter/src/ui_kit/layout/steam_layout_breakpoints.dart';
 import 'package:ssf_flutter/src/ui_kit/overlay/steam_notice.dart';
 import 'package:ssf_flutter/src/ui_kit/steam_theme.dart';
 
@@ -37,6 +38,7 @@ class _SettingsScreenState() extends State<SettingsScreen> {
   late SettingsSection _section;
   late bool _refreshSteamLibrary;
   late bool _steamVisited;
+
   bool get _libraryUpdating =>
       (widget.backgroundLibrary?.sync.busy ?? false) ||
       (widget.backgroundLibrary?.saving ?? false) ||
@@ -104,7 +106,7 @@ class _SettingsScreenState() extends State<SettingsScreen> {
             top: false,
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final bool expanded = constraints.maxWidth >= 840;
+                final bool expanded = constraints.maxWidth >= SteamLayoutBreakpoints.expanded;
                 final Widget selectedContent = switch (_section) {
                   SettingsSection.appearance => AppearanceSettingsTab(
                     settings: settings,
@@ -157,7 +159,7 @@ class _SettingsScreenState() extends State<SettingsScreen> {
                   children: [
                     SettingsSideNavigation(
                       selected: _section,
-                      extended: constraints.maxWidth >= 1080,
+                      extended: constraints.maxWidth >= SteamLayoutBreakpoints.large,
                       onSelected: _selectSection,
                       appearanceOnly: _libraryUpdating,
                     ),
@@ -168,7 +170,7 @@ class _SettingsScreenState() extends State<SettingsScreen> {
             ),
           ),
         ),
-        bottomNavigationBar: MediaQuery.sizeOf(context).width < 840
+        bottomNavigationBar: MediaQuery.sizeOf(context).width < SteamLayoutBreakpoints.expanded
             ? SettingsBottomNavigation(selected: _section, onSelected: _selectSection, appearanceOnly: _libraryUpdating)
             : null,
       ),

@@ -46,6 +46,7 @@ class SteamLibraryController({
   SteamLibrarySnapshot? _handled;
 
   bool get saving => phase == SteamCatalogPhase.saving || phase == SteamCatalogPhase.signingOut;
+
   bool get gamesActive => sync.processManager.hasActiveGames;
 
   bool get credentialsEnabled =>

@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:ssf_flutter/src/ui_kit/layout/steam_layout_breakpoints.dart';
 import 'package:ssf_flutter/src/ui_kit/steam_tokens.dart';
 
 enum SteamButtonVariant() {
@@ -40,7 +41,7 @@ class _SteamButtonState() extends State<SteamButton> {
 
   @override
   Widget build(BuildContext context) {
-    final bool touchLayout = MediaQuery.sizeOf(context).width < 600;
+    final bool touchLayout = MediaQuery.sizeOf(context).width < SteamLayoutBreakpoints.medium;
     final double height =
         widget.height ??
         (widget.variant == SteamButtonVariant.seeMore

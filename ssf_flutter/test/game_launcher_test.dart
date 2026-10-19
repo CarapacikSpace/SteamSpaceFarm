@@ -152,6 +152,22 @@ void main() {
     expect(launcher.launchedGames.single.app.appId, 480);
   });
 
+  test('allows 31 simultaneous games and frees capacity after a stop', () async {
+    launcher.updateMaxRunningGames(31);
+    for (var id = 1; id <= 31; id++) {
+      await launcher.toggleGame(LocalApp(appId: id, name: 'Game $id', type: SteamAppType.game));
+    }
+    expect(launcher.occupiedSlots, 31);
+    const extra = LocalApp(appId: 32, name: 'Game 32', type: SteamAppType.game);
+    await launcher.toggleGame(extra);
+    expect(service.starts, hasLength(31));
+    expect(() => launcher.updateMaxRunningGames(32), throwsRangeError);
+    await launcher.stopGame(1);
+    await launcher.toggleGame(extra);
+    expect(service.starts.last, 32);
+    expect(launcher.occupiedSlots, 31);
+  });
+
   test('stop all cancels pending ready and queued toggles', () async {
     service.startGate = Completer<void>();
     final Future<void> start = launcher.toggleGame(first);
@@ -236,7 +252,9 @@ class FakeSteam() extends SteamGameService {
   bool failStop = false;
   int stopExitCode = 0;
   final restorationFailures = StreamController<void>.broadcast();
+
   Future<void> _closeRestorationFailures() => restorationFailures.close();
+
   @override
   Stream<void> get presenceRestorationFailures => restorationFailures.stream;
   final starts = <int>[];
@@ -290,6 +308,7 @@ class FakeSteam() extends SteamGameService {
 class FailingSecondSteam() extends FakeSteam {
   final entered = Completer<void>();
   final releaseFailure = Completer<void>();
+
   @override
   Future<SteamGameProcess> launchApp(LocalApp app, {required String expectedSteamId, Duration? maximumRunTime}) async {
     if (app.appId == second.appId) {

@@ -909,11 +909,11 @@ class GeneratedLocalizationsRu extends GeneratedLocalizations {
       'Для Steamworks и SteamKit. После завершения всех игр восстановится предыдущий статус. SteamKit работает и без локального Steam.';
 
   @override
-  String get experimentalSteamKit => 'Запуск через SteamKit — ЭКСПЕРИМЕНТАЛЬНО';
+  String get experimentalSteamKit => 'Запуск без открытого клиента Steam';
 
   @override
   String get experimentalSteamKitHint =>
-      'Запуск игр и переход в «Невидимку» работают без локально запущенного Steam: достаточно войти в аккаунт в SteamSpaceFarm. Учёт времени зависит от Steam.';
+      'Достаточно войти в аккаунт в SteamSpaceFarm. Игровые сеансы и переход в «Невидимку» работают, даже когда клиент Steam закрыт. Учёт времени зависит от Steam.';
 
   @override
   String get gamesBlockLibrary => 'Остановите все игры перед обновлением библиотеки или выходом из аккаунта.';
@@ -951,4 +951,104 @@ class GeneratedLocalizationsRu extends GeneratedLocalizations {
   @override
   String get steamPresenceRestoreFailed =>
       'Не удалось восстановить предыдущий статус Steam после нескольких попыток. Проверьте свой статус в Steam.';
+
+  @override
+  String get cardFarmingMode => 'Режим получения карточек';
+
+  @override
+  String get cardModeFast => 'Быстрый';
+
+  @override
+  String get cardModeSequential => 'По одной';
+
+  @override
+  String get cardModeCombined => 'Комбинированный';
+
+  @override
+  String get cardModeFastHint => 'Чередует 5 минут совместного запуска с короткими запусками игр по одной.';
+
+  @override
+  String get cardModeSequentialHint => 'Одна игра до получения всех доступных карточек, затем следующая.';
+
+  @override
+  String get cardModeCombinedHint =>
+      'Сначала набирает 2 часа в нескольких играх, затем получает карточки по одной игре.';
+
+  @override
+  String get refreshPlaytimeHourly => 'Обновлять время в Steam каждый час';
+
+  @override
+  String get refreshPlaytimeHourlyHint =>
+      'Временно останавливать сеансы, получать актуальное время и возобновлять запуск.';
+
+  @override
+  String get cardsTitle => 'Карточки';
+
+  @override
+  String get cardsRefresh => 'Проверить карточки';
+
+  @override
+  String get cardsStartAll => 'Получить все карточки';
+
+  @override
+  String get cardsStart => 'Получать карточки';
+
+  @override
+  String get cardsUnknown => 'Карточки ещё не проверены';
+
+  @override
+  String get cardsEmpty => 'Карточек нет';
+
+  @override
+  String get cardsPartial => 'Данные неполные. Неизвестный остаток не считается нулевым.';
+
+  @override
+  String get cardsFailed => 'Не удалось проверить данные или выполнить сеанс. Повторите попытку.';
+
+  @override
+  String get cardsPriority => 'Сначала карточки, затем обычные часы. Прогресс часов сохраняется.';
+
+  @override
+  String get cardsFilter => 'С карточками';
+
+  @override
+  String cardsRemaining(int count) {
+    return 'Осталось карточек: $count';
+  }
+
+  @override
+  String cardsCheckedAt(String time) {
+    return 'Проверено: $time';
+  }
+
+  @override
+  String cardsQueued(int count) {
+    return 'Игр с карточками в очереди: $count';
+  }
+
+  @override
+  String get workPreparing => 'Подготовка сеансов';
+
+  @override
+  String get workGroup => 'Карточки: совместный запуск';
+
+  @override
+  String get workSingle => 'Карточки: одна игра';
+
+  @override
+  String get workChecking => 'Проверка остатка карточек';
+
+  @override
+  String get workWaiting => 'Ожидание / пауза';
+
+  @override
+  String get workSyncing => 'Обновление времени Steam';
+
+  @override
+  String get cardsStopDescription => 'Остановить получение карточек и продолжить ожидающие сеансы часов?';
+
+  @override
+  String cardsCount(int count) {
+    return 'Карточек $count';
+  }
 }

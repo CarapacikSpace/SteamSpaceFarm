@@ -9,10 +9,13 @@ class const LocalApp({
   final int? stopAtMinutes,
   final bool isFavorite = false,
   final String? icon,
+  final String? storeHeaderImage,
+  final String? libraryCapsuleImage,
   final bool isHidden = false,
   final LibraryOwnership libraryOwnership = LibraryOwnership.unknown,
   final bool isLibraryOwnershipManual = false,
   final int? playtimeMinutes,
+  final int? confirmedPlaytimeMinutes,
   final DateTime? lastPlayed,
 }) {
   factory fromJson(Map<String, Object?> json) => LocalApp(
@@ -22,10 +25,13 @@ class const LocalApp({
     isFavorite: (json['isFavorite'] as bool?) ?? false,
     type: SteamAppType.values.firstWhere((e) => e.index == (json['type']! as int)),
     icon: json['icon'] as String?,
+    storeHeaderImage: json['storeHeaderImage'] as String?,
+    libraryCapsuleImage: json['libraryCapsuleImage'] as String?,
     isHidden: (json['isHidden'] as bool?) ?? false,
     libraryOwnership: _parseLibraryOwnership(json['libraryOwnership']),
     isLibraryOwnershipManual: (json['isLibraryOwnershipManual'] as bool?) ?? false,
     playtimeMinutes: json['playtimeMinutes'] as int?,
+    confirmedPlaytimeMinutes: json['confirmedPlaytimeMinutes'] as int?,
     lastPlayed: json['lastPlayed'] != null
         ? DateTime.fromMillisecondsSinceEpoch(json['lastPlayed']! as int, isUtc: true)
         : null,
@@ -35,6 +41,7 @@ class const LocalApp({
     Optional<int?> stopAtMinutes = const Optional.absent(),
     bool? isFavorite,
     int? playtimeMinutes,
+    int? confirmedPlaytimeMinutes,
     LibraryOwnership? libraryOwnership,
     bool? isLibraryOwnershipManual,
   }) => LocalApp(
@@ -44,10 +51,13 @@ class const LocalApp({
     isFavorite: isFavorite ?? this.isFavorite,
     type: type,
     icon: icon,
+    storeHeaderImage: storeHeaderImage,
+    libraryCapsuleImage: libraryCapsuleImage,
     isHidden: isHidden,
     libraryOwnership: libraryOwnership ?? this.libraryOwnership,
     isLibraryOwnershipManual: isLibraryOwnershipManual ?? this.isLibraryOwnershipManual,
     playtimeMinutes: playtimeMinutes ?? this.playtimeMinutes,
+    confirmedPlaytimeMinutes: confirmedPlaytimeMinutes ?? this.confirmedPlaytimeMinutes,
     lastPlayed: lastPlayed,
   );
 
@@ -59,29 +69,42 @@ class const LocalApp({
       'isFavorite': isFavorite,
       'type': type.index,
       if (icon != null) 'icon': icon,
+      if (storeHeaderImage != null) 'storeHeaderImage': storeHeaderImage,
+      if (libraryCapsuleImage != null) 'libraryCapsuleImage': libraryCapsuleImage,
       'isHidden': isHidden,
       'libraryOwnership': libraryOwnership.name,
       'isLibraryOwnershipManual': isLibraryOwnershipManual,
       if (playtimeMinutes != null) 'playtimeMinutes': playtimeMinutes,
+      if (confirmedPlaytimeMinutes != null) 'confirmedPlaytimeMinutes': confirmedPlaytimeMinutes,
       if (lastPlayed != null) 'lastPlayed': lastPlayed?.millisecondsSinceEpoch,
     };
   }
 
-  String get libraryCapsuleUrl =>
+  String get libraryCapsuleUrl => libraryCapsuleImage ?? _legacyLibraryCapsuleUrl;
+
+  String get _legacyLibraryCapsuleUrl =>
       'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/$appId/library_600x900.jpg';
 
   String get mainCapsuleUrl =>
       'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/$appId/capsule_616x353.jpg';
 
-  String get storeHeaderUrl => 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/$appId/header.jpg';
+  String get storeHeaderUrl => storeHeaderImage ?? _legacyStoreHeaderUrl;
+
+  String get _legacyStoreHeaderUrl =>
+      'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/$appId/header.jpg';
 
   String? get appIconUrl => icon == null || icon!.isEmpty ? null : _formatImageUrl(icon!);
 
-  List<String> get libraryCapsuleImageUrls => [libraryCapsuleUrl, mainCapsuleUrl, storeHeaderUrl];
+  List<String> get libraryCapsuleImageUrls => [
+    if (libraryCapsuleImage case final String url) url,
+    _legacyLibraryCapsuleUrl,
+    mainCapsuleUrl,
+    ...storeHeaderImageUrls,
+  ];
 
   List<String> get mainCapsuleImageUrls => [mainCapsuleUrl, storeHeaderUrl];
 
-  List<String> get storeHeaderImageUrls => [storeHeaderUrl];
+  List<String> get storeHeaderImageUrls => [if (storeHeaderImage case final String url) url, _legacyStoreHeaderUrl];
 
   List<String> get appIconImageUrls => [if (appIconUrl case final String url) url];
 

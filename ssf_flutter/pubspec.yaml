@@ -1,7 +1,7 @@
 name: ssf_flutter
 description: "Manage your Steam library, track playtime, and control game sessions, with Steam Family support."
 publish_to: 'none'
-version: 2.1.0+11
+version: 2.2.0+12
 environment:
   sdk: ^3.13.0
 

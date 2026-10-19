@@ -12,6 +12,7 @@ enum CatalogStatus() {
   all,
   running,
   marked,
+  cards,
   hidden,
   favorite,
 }
@@ -20,6 +21,7 @@ String catalogStatusLabel(GeneratedLocalizations l10n, CatalogStatus status) => 
   CatalogStatus.all => l10n.all,
   CatalogStatus.running => l10n.statusRunning,
   CatalogStatus.marked => l10n.marked,
+  CatalogStatus.cards => l10n.cardsFilter,
   CatalogStatus.hidden => l10n.hidden,
   CatalogStatus.favorite => l10n.favorites,
 };

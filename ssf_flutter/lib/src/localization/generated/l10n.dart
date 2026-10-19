@@ -8,6 +8,7 @@ import 'package:intl/intl.dart' as intl;
 import 'l10n_en.dart';
 import 'l10n_es.dart';
 import 'l10n_ru.dart';
+import 'l10n_zh.dart';
 
 // ignore_for_file: type=lint
 
@@ -91,7 +92,7 @@ abstract class GeneratedLocalizations {
   ];
 
   /// A list of this localizations delegate's supported locales.
-  static const List<Locale> supportedLocales = <Locale>[Locale('en'), Locale('es'), Locale('ru')];
+  static const List<Locale> supportedLocales = <Locale>[Locale('en'), Locale('es'), Locale('ru'), Locale('zh')];
 
   /// No description provided for @activeQueueMustStop.
   ///
@@ -1728,13 +1729,13 @@ abstract class GeneratedLocalizations {
   /// No description provided for @experimentalSteamKit.
   ///
   /// In en, this message translates to:
-  /// **'Launch via SteamKit — EXPERIMENTAL'**
+  /// **'Run without the Steam client open'**
   String get experimentalSteamKit;
 
   /// No description provided for @experimentalSteamKitHint.
   ///
   /// In en, this message translates to:
-  /// **'Game sessions and Invisible status work without the local Steam client running: just sign in to SteamSpaceFarm. Steam determines whether playtime is recorded.'**
+  /// **'Just sign in to SteamSpaceFarm. Game sessions and Invisible status work even when the Steam client is closed. Steam determines whether playtime is recorded.'**
   String get experimentalSteamKitHint;
 
   /// No description provided for @gamesBlockLibrary.
@@ -1802,6 +1803,186 @@ abstract class GeneratedLocalizations {
   /// In en, this message translates to:
   /// **'Could not restore your previous Steam status after several attempts. Check your status in Steam.'**
   String get steamPresenceRestoreFailed;
+
+  /// No description provided for @cardFarmingMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Card farming mode'**
+  String get cardFarmingMode;
+
+  /// No description provided for @cardModeFast.
+  ///
+  /// In en, this message translates to:
+  /// **'Fast'**
+  String get cardModeFast;
+
+  /// No description provided for @cardModeSequential.
+  ///
+  /// In en, this message translates to:
+  /// **'One at a time'**
+  String get cardModeSequential;
+
+  /// No description provided for @cardModeCombined.
+  ///
+  /// In en, this message translates to:
+  /// **'Combined'**
+  String get cardModeCombined;
+
+  /// No description provided for @cardModeFastHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternates 5 minutes of simultaneous sessions with short individual sessions.'**
+  String get cardModeFastHint;
+
+  /// No description provided for @cardModeSequentialHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Runs one game until its available card drops are exhausted, then moves to the next.'**
+  String get cardModeSequentialHint;
+
+  /// No description provided for @cardModeCombinedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'First builds up 2 hours in multiple games, then farms one game at a time.'**
+  String get cardModeCombinedHint;
+
+  /// No description provided for @refreshPlaytimeHourly.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Steam playtime every hour'**
+  String get refreshPlaytimeHourly;
+
+  /// No description provided for @refreshPlaytimeHourlyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporarily stops sessions, retrieves playtime from Steam, then resumes them.'**
+  String get refreshPlaytimeHourlyHint;
+
+  /// No description provided for @cardsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trading cards'**
+  String get cardsTitle;
+
+  /// No description provided for @cardsRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Check card drops'**
+  String get cardsRefresh;
+
+  /// No description provided for @cardsStartAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Farm all cards'**
+  String get cardsStartAll;
+
+  /// No description provided for @cardsStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Farm cards'**
+  String get cardsStart;
+
+  /// No description provided for @cardsUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Card drops have not been checked yet'**
+  String get cardsUnknown;
+
+  /// No description provided for @cardsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No cards'**
+  String get cardsEmpty;
+
+  /// No description provided for @cardsPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Data is incomplete. An unknown count is not treated as zero.'**
+  String get cardsPartial;
+
+  /// No description provided for @cardsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check data or run the session. Please retry.'**
+  String get cardsFailed;
+
+  /// No description provided for @cardsPriority.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards take priority over regular playtime. Hour progress is preserved.'**
+  String get cardsPriority;
+
+  /// No description provided for @cardsFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'With card drops'**
+  String get cardsFilter;
+
+  /// No description provided for @cardsRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Card drops remaining: {count}'**
+  String cardsRemaining(int count);
+
+  /// No description provided for @cardsCheckedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked: {time}'**
+  String cardsCheckedAt(String time);
+
+  /// No description provided for @cardsQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Card games queued: {count}'**
+  String cardsQueued(int count);
+
+  /// No description provided for @workPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing sessions'**
+  String get workPreparing;
+
+  /// No description provided for @workGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards: simultaneous sessions'**
+  String get workGroup;
+
+  /// No description provided for @workSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards: one game'**
+  String get workSingle;
+
+  /// No description provided for @workChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking remaining card drops'**
+  String get workChecking;
+
+  /// No description provided for @workWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting / paused'**
+  String get workWaiting;
+
+  /// No description provided for @workSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating Steam playtime'**
+  String get workSyncing;
+
+  /// No description provided for @cardsStopDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop card farming and resume waiting playtime sessions?'**
+  String get cardsStopDescription;
+
+  /// No description provided for @cardsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards {count}'**
+  String cardsCount(int count);
 }
 
 class _GeneratedLocalizationsDelegate extends LocalizationsDelegate<GeneratedLocalizations> {
@@ -1813,7 +1994,7 @@ class _GeneratedLocalizationsDelegate extends LocalizationsDelegate<GeneratedLoc
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['en', 'es', 'ru'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['en', 'es', 'ru', 'zh'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_GeneratedLocalizationsDelegate old) => false;
@@ -1828,6 +2009,8 @@ GeneratedLocalizations lookupGeneratedLocalizations(Locale locale) {
       return GeneratedLocalizationsEs();
     case 'ru':
       return GeneratedLocalizationsRu();
+    case 'zh':
+      return GeneratedLocalizationsZh();
   }
 
   throw FlutterError(

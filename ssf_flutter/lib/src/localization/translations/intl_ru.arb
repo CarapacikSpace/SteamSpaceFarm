@@ -279,8 +279,8 @@
   "runnerSteamPresenceFailed": "Не удалось включить «Невидимку». Проверьте подключение к Steam и повторите запуск.",
   "invisibleWhilePlaying": "Переходить в «Невидимку» при запуске игр",
   "invisibleWhilePlayingHint": "Для Steamworks и SteamKit. После завершения всех игр восстановится предыдущий статус. SteamKit работает и без локального Steam.",
-  "experimentalSteamKit": "Запуск через SteamKit — ЭКСПЕРИМЕНТАЛЬНО",
-  "experimentalSteamKitHint": "Запуск игр и переход в «Невидимку» работают без локально запущенного Steam: достаточно войти в аккаунт в SteamSpaceFarm. Учёт времени зависит от Steam.",
+  "experimentalSteamKit": "Запуск без открытого клиента Steam",
+  "experimentalSteamKitHint": "Достаточно войти в аккаунт в SteamSpaceFarm. Игровые сеансы и переход в «Невидимку» работают, даже когда клиент Steam закрыт. Учёт времени зависит от Steam.",
   "gamesBlockLibrary": "Остановите все игры перед обновлением библиотеки или выходом из аккаунта.",
   "leaveLibraryUpdateTitle": "Остановить обновление библиотеки?",
   "leaveLibraryUpdateMessage": "Если вы выйдете с этого экрана, обновление библиотеки остановится. Сохранённый каталог останется доступен.",
@@ -291,6 +291,67 @@
   "runnerSteamKitFailed": "SteamKit не подтвердил сеанс. Повторно войдите в Steam и попробуйте снова.",
   "sessionSettingsShort": "Сеансы",
   "gameSessionInterrupted": "Сеанс {name} (AppID {appId}) неожиданно завершился. Проверьте подключение к Steam перед повторным запуском. Активные очереди приостановлены.",
-  "@gameSessionInterrupted": {"placeholders": {"name": {"type": "String"}, "appId": {"type": "int"}}},
-  "steamPresenceRestoreFailed": "Не удалось восстановить предыдущий статус Steam после нескольких попыток. Проверьте свой статус в Steam."
+  "@gameSessionInterrupted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "appId": {
+        "type": "int"
+      }
+    }
+  },
+  "steamPresenceRestoreFailed": "Не удалось восстановить предыдущий статус Steam после нескольких попыток. Проверьте свой статус в Steam.",
+  "cardFarmingMode": "Режим получения карточек",
+  "cardModeFast": "Быстрый",
+  "cardModeSequential": "По одной",
+  "cardModeCombined": "Комбинированный",
+  "cardModeFastHint": "Чередует 5 минут совместного запуска с короткими запусками игр по одной.",
+  "cardModeSequentialHint": "Одна игра до получения всех доступных карточек, затем следующая.",
+  "cardModeCombinedHint": "Сначала набирает 2 часа в нескольких играх, затем получает карточки по одной игре.",
+  "refreshPlaytimeHourly": "Обновлять время в Steam каждый час",
+  "refreshPlaytimeHourlyHint": "Временно останавливать сеансы, получать актуальное время и возобновлять запуск.",
+  "cardsTitle": "Карточки",
+  "cardsRefresh": "Проверить карточки",
+  "cardsStartAll": "Получить все карточки",
+  "cardsStart": "Получать карточки",
+  "cardsUnknown": "Карточки ещё не проверены",
+  "cardsEmpty": "Карточек нет",
+  "cardsPartial": "Данные неполные. Неизвестный остаток не считается нулевым.",
+  "cardsFailed": "Не удалось проверить данные или выполнить сеанс. Повторите попытку.",
+  "cardsPriority": "Сначала карточки, затем обычные часы. Прогресс часов сохраняется.",
+  "cardsFilter": "С карточками",
+  "cardsRemaining": "Осталось карточек: {count}",
+  "@cardsRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cardsCheckedAt": "Проверено: {time}",
+  "@cardsCheckedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "cardsQueued": "Игр с карточками в очереди: {count}",
+  "@cardsQueued": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "workPreparing": "Подготовка сеансов",
+  "workGroup": "Карточки: совместный запуск",
+  "workSingle": "Карточки: одна игра",
+  "workChecking": "Проверка остатка карточек",
+  "workWaiting": "Ожидание / пауза",
+  "workSyncing": "Обновление времени Steam",
+  "cardsStopDescription": "Остановить получение карточек и продолжить ожидающие сеансы часов?",
+  "cardsCount": "Карточек {count}",
+  "@cardsCount": {"placeholders": {"count": {"type": "int"}}}
 }

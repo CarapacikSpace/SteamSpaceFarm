@@ -10,7 +10,9 @@ public sealed record LibraryEntry(
     string MetadataStatus,
     string HoursStatus,
     string? Type = null,
-    long? LastPlayedAtUnixSeconds = null);
+    long? LastPlayedAtUnixSeconds = null,
+    string? StoreHeaderImage = null,
+    string? LibraryCapsuleImage = null);
 
 public sealed record SourceReport(
     string Status,
@@ -52,7 +54,8 @@ public sealed record LibraryEvidence(
     SourceReport FamilyReport,
     IReadOnlyList<string> Diagnostics,
     IReadOnlyDictionary<uint, string?>? Types = null,
-    IReadOnlyDictionary<uint, uint>? LastPlayed = null);
+    IReadOnlyDictionary<uint, uint>? LastPlayed = null,
+    IReadOnlyDictionary<uint, SteamAppArtwork>? Artwork = null);
 
 public static class LibraryMerger
 {
@@ -86,7 +89,9 @@ public static class LibraryMerger
                     !string.IsNullOrWhiteSpace(name) ? "complete" : "missing",
                     evidence.Hours.ContainsKey(id) ? "complete" : "unknown",
                     evidence.Types?.GetValueOrDefault(id),
-                    evidence.LastPlayed?.GetValueOrDefault(id) is > 0 and var timestamp ? timestamp : null);
+                    evidence.LastPlayed?.GetValueOrDefault(id) is > 0 and var timestamp ? timestamp : null,
+                    evidence.Artwork?.GetValueOrDefault(id)?.StoreHeaderImage,
+                    evidence.Artwork?.GetValueOrDefault(id)?.LibraryCapsuleImage);
             })
             .ToArray();
 
